@@ -336,6 +336,11 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
     <label class="fl">Название главного фонда</label>
     <input class="fi" id="sName" type="text">
     <div class="fn" id="rateNote">Курс ЦБ загружается автоматически</div>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px;text-transform:uppercase;letter-spacing:.07em">Сброс данных</div>
+      <button class="btn sm" style="color:var(--red);border-color:rgba(240,82,82,.3)" onclick="resetAllData()">⚠ Сбросить localStorage и перезагрузить</button>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">Удалит все сохранённые данные. Структура фондов сбросится к дефолтной.</div>
+    </div>
     <div class="mactions">
       <button class="bcancel" id="bSettingsCancel">Отмена</button>
       <button class="bok" id="bSettingsSave">Сохранить</button>
@@ -411,7 +416,7 @@ function saveState(list) {
     id:f.id,name:f.name,usdM:f.usdM,yld:f.yld,monthly:f.monthly,tag:f.tag,
     goal:f.goal,risk:f.risk,currency:f.currency,
     included:f.included,founders:f.founders||[],
-    rubM:f.rubM,rubMon:f.rubMon,liveYld:f.liveYld,
+    liveYld:f.liveYld,
     children:strip(f.children||[])
   }));}
   localStorage.setItem(STORE_KEY, JSON.stringify(strip(list)));
@@ -487,14 +492,12 @@ async function fetchFund(f){
 
 /* COMPUTE */
 function getUsd(f){
-  if(f.rubM!=null&&f.rubM>=0) return f.rubM/usdRub;
   if(f.usdM!=null&&f.usdM>=0) return f.usdM;
   const live=f.liveUsd||0;
   const childSum=(f.children||[]).filter(c=>c.included).reduce((s,c)=>s+getUsd(c),0);
   return live+childSum;
 }
 function getMon(f){
-  if(f.rubMon!=null&&f.rubMon>=0) return f.rubMon/usdRub;
   if(f.monthly!=null&&f.monthly>=0) return f.monthly;
   const live=f.liveMon||0;
   const childSum=(f.children||[]).filter(c=>c.included).reduce((s,c)=>s+getMon(c),0);
@@ -965,6 +968,13 @@ function clearFilter(){
   activeFounders.clear();
   allFundsFlat().forEach(f=>{ f._filterShare = 1; });
   recalcDisplay();
+}
+
+function resetAllData(){
+  if(!confirm('Сбросить все данные? Фонды вернутся к дефолтным настройкам.')) return;
+  localStorage.removeItem('piura_funds_v4');
+  localStorage.removeItem('piura_funds_v4_incl');
+  location.reload();
 }
 
 /* INIT */
