@@ -32,18 +32,20 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
 .wrap{padding:40px 56px;display:flex;flex-direction:column;gap:44px;max-width:1800px;margin:0 auto}
 
 /* ROOT FUND */
-.root-card{background:var(--bg2);border:1px solid #2a3460;border-radius:24px;padding:48px 52px;position:relative;overflow:hidden}
-.root-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--blue) 0%,var(--purple) 50%,var(--cyan) 100%)}
+.root-card{background:linear-gradient(145deg,#0d0f1a 0%,#0a0c18 100%);border:1px solid #1e2545;border-radius:28px;padding:44px 48px;position:relative;overflow:hidden;box-shadow:0 0 60px rgba(79,142,247,.06)}
+.root-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#4f8ef7,#b06cf5,#22d3ee,#1fd87a)}
+.root-card::after{content:'PIURA';position:absolute;right:-20px;bottom:-40px;font-size:200px;font-weight:900;color:rgba(79,142,247,.025);letter-spacing:-8px;pointer-events:none;line-height:1}
 
 .root-name{font-size:112px;font-weight:900;letter-spacing:-4px;line-height:1;color:#fff;margin-bottom:8px}
 .root-sub{font-size:13px;font-weight:700;letter-spacing:.2em;color:var(--text3);text-transform:uppercase;margin-bottom:36px}
 
 .root-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:28px}
-.rm{background:var(--bg3);border:1px solid var(--border);border-radius:18px;padding:28px 30px}
-.rm-lbl{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:12px}
-.rm-val{font-size:66px;font-weight:900;letter-spacing:-2px;line-height:1;margin-bottom:6px}
-.rm-sub{font-size:20px;color:var(--text3)}
-.rm-sub2{font-size:14px;color:var(--text3);margin-top:4px}
+.rm{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px 28px;backdrop-filter:blur(4px)}
+.rm:hover{background:rgba(255,255,255,.035);border-color:rgba(79,142,247,.2)}
+.rm-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:10px}
+.rm-val{font-size:56px;font-weight:900;letter-spacing:-2px;line-height:1;margin-bottom:4px}
+.rm-sub{font-size:17px;color:var(--text3)}
+.rm-sub2{font-size:13px;color:var(--text3);margin-top:3px}
 
 .incl-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:22px}
 .incl-lbl{font-size:14px;color:var(--text3);margin-right:4px}
@@ -103,10 +105,55 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
 .expand-btn{width:100%;background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:10px 0 0;text-align:center;transition:color .15s;font-family:inherit}
 .expand-btn:hover{color:var(--text2)}
 
-.live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:5px;animation:pulse 2s infinite}
+.live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:4px;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .mini-spin{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
 @keyframes sp{to{transform:rotate(360deg)}}
+
+/* CARD META ROW */
+.fc-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.meta-chip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.04em;display:flex;align-items:center;gap:4px}
+.meta-chip.risk-1{background:rgba(31,216,122,.1);color:#1fd87a;border:1px solid rgba(31,216,122,.2)}
+.meta-chip.risk-2{background:rgba(130,210,120,.1);color:#7ecf6e;border:1px solid rgba(130,210,120,.2)}
+.meta-chip.risk-3{background:rgba(245,185,66,.1);color:#f5b942;border:1px solid rgba(245,185,66,.2)}
+.meta-chip.risk-4{background:rgba(251,146,60,.1);color:#fb923c;border:1px solid rgba(251,146,60,.2)}
+.meta-chip.risk-5{background:rgba(240,82,82,.1);color:#f05252;border:1px solid rgba(240,82,82,.2)}
+.meta-chip.risk-6{background:rgba(200,50,50,.12);color:#e03030;border:1px solid rgba(200,50,50,.2)}
+.meta-chip.risk-7{background:rgba(160,30,30,.15);color:#cc2020;border:1px solid rgba(160,30,30,.25)}
+.meta-chip.currency   {background:rgba(79,142,247,.1);color:#4f8ef7;border:1px solid rgba(79,142,247,.2)}
+.meta-chip.goal-ok    {background:rgba(31,216,122,.08);color:#1fd87a;border:1px solid rgba(31,216,122,.15)}
+.meta-chip.goal-warn  {background:rgba(245,185,66,.08);color:#f5b942;border:1px solid rgba(245,185,66,.15)}
+.meta-chip.goal-no    {background:rgba(79,142,247,.06);color:#6b7080;border:1px solid rgba(79,142,247,.1)}
+
+/* GOAL PROGRESS */
+.fc-goal{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
+.goal-bar-bg{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-top:6px}
+.goal-bar-fill{height:100%;border-radius:2px;transition:width .6s ease}
+.goal-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:3px}
+
+/* NEW CARD DESIGN */
+.fc{background:linear-gradient(160deg,#0d0f1a 0%,#0a0c16 100%);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:22px 24px;position:relative;transition:all .2s;overflow:hidden}
+.fc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent,#252836);border-radius:18px 18px 0 0}
+.fc::after{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,var(--accent,transparent) 0%,transparent 70%);opacity:.08;pointer-events:none}
+.fc:hover{border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.fc.excl{opacity:.25}
+.fc-name{font-size:18px;font-weight:800;color:#fff;padding-right:85px;margin-bottom:6px;letter-spacing:.02em;text-transform:uppercase;line-height:1.2}
+.fc-tag{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;display:inline-block;margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase}
+.fc-usd{font-size:38px;font-weight:900;letter-spacing:-1.5px;line-height:1;color:var(--green);margin-bottom:2px}
+.fc-rub{font-size:13px;color:var(--text3);margin-bottom:0}
+.fc-data{display:flex;flex-direction:column;gap:7px;border-top:1px solid var(--border);padding-top:12px;margin-top:12px}
+.fdr{display:flex;justify-content:space-between;align-items:baseline}
+.fdr-l{font-size:12px;color:var(--text3)}
+.fdr-v{font-size:14px;font-weight:700}
+.fdr-v.g{color:var(--green)}.fdr-v.y{color:var(--yellow)}.fdr-v.p{color:var(--purple)}
+.fc-founders{border-top:1px solid var(--border);margin-top:10px;padding-top:10px;display:none}
+.fc.expanded .fc-founders{display:block}
+.fnd-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0}
+.fnd-name{font-size:12px;color:var(--text2)}
+.fnd-pct{font-size:12px;font-weight:700;color:var(--blue)}
+.fnd-amt{font-size:11px;color:var(--text3)}
+.expand-btn{width:100%;background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;padding:8px 0 0;text-align:center;transition:color .15s;font-family:inherit}
+.expand-btn:hover{color:var(--text2)}
 
 /* MODAL */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:400;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .18s}
@@ -164,11 +211,24 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
         <div class="rm-sub">% годовых</div>
       </div>
     </div>
-    <div class="incl-row" id="inclRow"><span class="incl-lbl">Учитывать:</span></div>
-    <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <span style="font-size:12px;color:var(--text3)">Фильтр по учредителю:</span>
-      <div id="founderFilterRow" style="display:flex;gap:8px;flex-wrap:wrap"></div>
-      <button class="btn sm" id="clearFounderFilter" style="display:none" onclick="clearFilter()">✕ сбросить</button>
+    <div style="margin-top:6px">
+      <button class="btn sm" onclick="toggleInclPanel()" id="inclToggleBtn" style="font-size:11px;color:var(--text3)">▸ Состав (учитывать)</button>
+      <div id="inclPanel" style="display:none;margin-top:10px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:12px">
+        <div class="incl-row" id="inclRow" style="border:none;padding:0;margin:0"><span class="incl-lbl">Учитывать:</span></div>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <button class="btn sm" onclick="toggleFilterPanel()" id="filterToggleBtn" style="font-size:11px;color:var(--text3)">▸ Фильтр по учредителю</button>
+      <div id="filterPanel" style="display:none;margin-top:10px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Учредитель</span>
+          <button class="btn sm" id="clearFounderFilter" style="display:none;font-size:11px" onclick="clearFilter()">✕ сбросить</button>
+        </div>
+        <div id="founderFilterRow" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+        <div style="margin-top:12px;font-size:11px;color:var(--text3)">
+          Можно выбрать до 2 учредителей — покажется суммарная их доля
+        </div>
+      </div>
     </div>
   </div>
 
@@ -193,6 +253,27 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
     <input class="fi" id="eYield" type="number" step="0.1">
     <label class="fl">Тег</label>
     <input class="fi" id="eTag" type="text" placeholder="Акции, Облигации...">
+    <label class="fl">Цель, ₽ (целевой капитал)</label>
+    <input class="fi" id="eGoal" type="number" placeholder="например 1000000">
+    <label class="fl">Риск</label>
+    <select class="fi" id="eRisk">
+      <option value="">— не указан —</option>
+      <option value="Консервативный">Консервативный</option>
+      <option value="Умеренно-конс.">Умеренно-консервативный</option>
+      <option value="Умеренный">Умеренный</option>
+      <option value="Умеренно-агр.">Умеренно-агрессивный</option>
+      <option value="Агрессивный">Агрессивный</option>
+      <option value="Высокий">Высокий</option>
+      <option value="Спекулятивный">Спекулятивный</option>
+    </select>
+    <label class="fl">Валюта</label>
+    <select class="fi" id="eCurrency">
+      <option value="">— не указана —</option>
+      <option value="USD">USD — Доллар</option>
+      <option value="RUB">RUB — Рубль</option>
+      <option value="EUR">EUR — Евро</option>
+      <option value="Mixed">Mixed — Смешанная</option>
+    </select>
     <div style="border-top:1px solid var(--border);padding-top:16px;margin-bottom:12px">
       <div class="fl" style="margin-bottom:10px">Учредители / Партнёры</div>
       <div id="foundersEdit"></div>
@@ -220,6 +301,27 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
     <input class="fi" id="aYield" type="number" step="0.1">
     <label class="fl">Тег</label>
     <input class="fi" id="aTag" type="text" placeholder="Акции, Облигации...">
+    <label class="fl">Цель, ₽</label>
+    <input class="fi" id="aGoal" type="number" placeholder="например 1000000">
+    <label class="fl">Риск</label>
+    <select class="fi" id="aRisk">
+      <option value="">— не указан —</option>
+      <option value="Консервативный">Консервативный</option>
+      <option value="Умеренно-конс.">Умеренно-консервативный</option>
+      <option value="Умеренный">Умеренный</option>
+      <option value="Умеренно-агр.">Умеренно-агрессивный</option>
+      <option value="Агрессивный">Агрессивный</option>
+      <option value="Высокий">Высокий</option>
+      <option value="Спекулятивный">Спекулятивный</option>
+    </select>
+    <label class="fl">Валюта</label>
+    <select class="fi" id="aCurrency">
+      <option value="">— не указана —</option>
+      <option value="USD">USD — Доллар</option>
+      <option value="RUB">RUB — Рубль</option>
+      <option value="EUR">EUR — Евро</option>
+      <option value="Mixed">Mixed — Смешанная</option>
+    </select>
     <div class="mactions">
       <button class="bcancel" id="bAddCancel">Отмена</button>
       <button class="bok" id="bAddSave">Создать</button>
@@ -254,12 +356,15 @@ const API_MSK  = 'https://script.google.com/macros/s/AKfycbzj1IX4yWqV8LNMCVhfmJ5
 
 const FCOLORS = {1:'#4f8ef7',2:'#b06cf5',3:'#1fd87a',4:'#fb923c',5:'#22d3ee',6:'#f5b942'};
 const TCOLORS = {
-  'Акции':     {bg:'#0d1f33',c:'#5ab0f5'}, 'Equities':  {bg:'#0d1f33',c:'#5ab0f5'},
-  'Облигации': {bg:'#0d2018',c:'#3dd68c'}, 'Bonds':     {bg:'#0d2018',c:'#3dd68c'},
-  'Эндаумент': {bg:'#1e1033',c:'#c084f5'}, 'Endowment': {bg:'#1e1033',c:'#c084f5'},
-  'Резерв':    {bg:'#211508',c:'#fb923c'}, 'Reserve':   {bg:'#211508',c:'#fb923c'},
-  'Смешанный': {bg:'#1a0f1f',c:'#e879f9'}, 'Mixed':     {bg:'#1a0f1f',c:'#e879f9'},
-  '_':         {bg:'#141620',c:'#6b7080'},
+  'Акции':      {bg:'#0d1f33',c:'#5ab0f5'},
+  'Облигации':  {bg:'#0d2018',c:'#3dd68c'},
+  'Эндаумент':  {bg:'#1e1033',c:'#c084f5'},
+  'Резерв':     {bg:'#211508',c:'#fb923c'},
+  'Смешанный':  {bg:'#1a0f1f',c:'#e879f9'},
+  'Недвижимость':{bg:'#1a1008',c:'#fbbf24'},
+  'Крипто':     {bg:'#081a1a',c:'#22d3ee'},
+  'Золото':     {bg:'#1a1500',c:'#f5b942'},
+  '_':          {bg:'#141620',c:'#6b7080'},
 };
 
 let rootName = 'PIURA FOUNDATION';
@@ -305,6 +410,7 @@ function loadState() {
 function saveState(list) {
   function strip(funds){return funds.map(f=>({
     id:f.id,name:f.name,usdM:f.usdM,yld:f.yld,monthly:f.monthly,tag:f.tag,
+    goal:f.goal,risk:f.risk,currency:f.currency,
     included:f.included,founders:f.founders||[],
     rubM:f.rubM,rubMon:f.rubMon,liveYld:f.liveYld,
     children:strip(f.children||[])
@@ -465,6 +571,23 @@ function makeCard(f){
   const nm=document.createElement('div');nm.className='fc-name';nm.textContent=f.name;div.appendChild(nm);
   if(f.tag){const tg=document.createElement('div');tg.className='fc-tag';tg.style.background=tc.bg;tg.style.color=tc.c;tg.textContent=f.tag;div.appendChild(tg);}
 
+  // META CHIPS: risk + currency
+  const metaRow=document.createElement('div');metaRow.className='fc-meta';
+  if(f.risk){
+    const rc=document.createElement('span');
+    const riskMap={'Консервативный':['risk-1','↓'],'Умеренно-конс.':['risk-2','↘'],'Умеренный':['risk-3','→'],'Умеренно-агр.':['risk-4','↗'],'Агрессивный':['risk-5','↑'],'Высокий':['risk-6','⬆'],'Спекулятивный':['risk-7','🔥']};
+    const [rcls,rarr]=riskMap[f.risk]||['risk-3','→'];
+    rc.className=`meta-chip ${rcls}`;
+    rc.textContent=rarr+' '+f.risk;
+    metaRow.appendChild(rc);
+  }
+  if(f.currency){
+    const cc=document.createElement('span');cc.className='meta-chip currency';
+    cc.textContent='💱 '+f.currency;
+    metaRow.appendChild(cc);
+  }
+  if(metaRow.children.length)div.appendChild(metaRow);
+
   const usdEl=document.createElement('div');usdEl.className='fc-usd';
   usdEl.innerHTML=f.loading?'<span class="mini-spin"></span>':fU(usd);div.appendChild(usdEl);
   const rubEl=document.createElement('div');rubEl.className='fc-rub';rubEl.textContent=fU(usd)==='—'?'':fR(usd*usdRub);div.appendChild(rubEl);
@@ -482,6 +605,20 @@ function makeCard(f){
       r.innerHTML=`<span class="fdr-l">${l}</span><span class="fdr-v ${c}">${v}</span>`;db.appendChild(r);
     });
     div.appendChild(db);
+  }
+
+  // GOAL PROGRESS BAR
+  if(f.goal && f.goal > 0){
+    const rubVal = usd*usdRub;
+    const pct = Math.min(100, rubVal/f.goal*100);
+    const goalDiv = document.createElement('div');goalDiv.className='fc-goal';
+    const glbl = document.createElement('div');glbl.className='goal-lbl';
+    glbl.innerHTML=`<span>Цель: ${fR(f.goal)}</span><span style="font-weight:700;color:${pct>=100?'var(--green)':pct>=50?'var(--yellow)':'var(--text3)'}">${pct.toFixed(0)}%</span>`;
+    const gBg=document.createElement('div');gBg.className='goal-bar-bg';
+    const gFill=document.createElement('div');gFill.className='goal-bar-fill';
+    gFill.style.width=pct+'%';
+    gFill.style.background=pct>=100?'var(--green)':pct>=50?'var(--yellow)':'var(--blue)';
+    gBg.appendChild(gFill);goalDiv.appendChild(glbl);goalDiv.appendChild(gBg);div.appendChild(goalDiv);
   }
 
   // founders
@@ -638,6 +775,9 @@ function openEdit(id){
   document.getElementById('eMonthly').value=f.monthly!=null?f.monthly:'';
   document.getElementById('eYield').value=f.yld!=null?f.yld:'';
   document.getElementById('eTag').value=f.tag||'';
+  document.getElementById('eGoal').value=f.goal!=null?f.goal:'';
+  document.getElementById('eRisk').value=f.risk||'';
+  document.getElementById('eCurrency').value=f.currency||'';
   const fe=document.getElementById('foundersEdit');fe.innerHTML='';
   (f.founders||[]).forEach(fn=>addFounderRow(fn.name,fn.pct));
   openM('mEdit');
@@ -649,6 +789,9 @@ function saveEdit(){
   const mon=document.getElementById('eMonthly').value;f.monthly=mon!==''?parseFloat(mon):null;
   const y=document.getElementById('eYield').value;f.yld=y!==''?parseFloat(y):null;
   f.tag=document.getElementById('eTag').value.trim();
+  const g=document.getElementById('eGoal').value;f.goal=g!==''?parseFloat(g):null;
+  f.risk=document.getElementById('eRisk').value||null;
+  f.currency=document.getElementById('eCurrency').value||null;
   f.founders=[];
   document.querySelectorAll('#foundersEdit .fnd-edit-row').forEach(row=>{
     const ins=row.querySelectorAll('input');
@@ -675,6 +818,9 @@ function saveAdd(){
     usdM:usdV!==''?parseFloat(usdV):null,
     monthly:monV!==''?parseFloat(monV):null,
     yld:document.getElementById('aYield').value!==''?parseFloat(document.getElementById('aYield').value):null,
+    goal:document.getElementById('aGoal').value!==''?parseFloat(document.getElementById('aGoal').value):null,
+    risk:document.getElementById('aRisk').value||null,
+    currency:document.getElementById('aCurrency').value||null,
     included:true,children:[],api:null,sheet:null,cur:'usd',
     liveUsd:null,liveMon:null,liveYld:null,loading:false,founders:[]
   };
@@ -685,7 +831,16 @@ function saveAdd(){
 function deleteFund(id){if(!confirm('Удалить фонд?'))return;removeF(id,funds);saveState(funds);renderTree();updateRoot();}
 
 /* FOUNDER FILTER */
-let activeFounder = null;
+let activeFounders = new Set(); // поддержка до 2
+
+function toggleFilterPanel(){
+  const p=document.getElementById('filterPanel');
+  const b=document.getElementById('filterToggleBtn');
+  const open=p.style.display==='none';
+  p.style.display=open?'block':'none';
+  b.textContent=(open?'▾':'▸')+' Фильтр по учредителю';
+  if(open) renderFounderFilter();
+}
 
 function allFundsFlat(){
   const arr=[];
@@ -697,18 +852,18 @@ function allFundsFlat(){
 function renderFounderFilter(){
   const row = document.getElementById('founderFilterRow');
   if(!row) return;
-  // собираем всех уникальных учредителей
   const names = new Set();
   allFundsFlat().forEach(f=>(f.founders||[]).forEach(fn=>names.add(fn.name)));
   row.innerHTML='';
-  document.getElementById('clearFounderFilter').style.display = activeFounder ? 'inline-flex' : 'none';
-  if(!names.size){row.innerHTML='<span style="font-size:12px;color:var(--text3)">—</span>';return;}
+  document.getElementById('clearFounderFilter').style.display = activeFounders.size>0?'inline-flex':'none';
+  if(!names.size){row.innerHTML='<span style="font-size:12px;color:var(--text3)">Учредители не добавлены</span>';return;}
   names.forEach(name=>{
     const p=document.createElement('div');
-    p.className='pill'+(activeFounder===name?' on':'');
+    p.className='pill'+(activeFounders.has(name)?' on':'');
     p.innerHTML=`<span class="dot"></span>${name}`;
     p.addEventListener('click',()=>{
-      activeFounder = activeFounder===name ? null : name;
+      if(activeFounders.has(name)){activeFounders.delete(name);}
+      else{if(activeFounders.size<2)activeFounders.add(name);}
       applyFounderFilter();
       renderFounderFilter();
     });
@@ -718,8 +873,8 @@ function renderFounderFilter(){
 
 function applyFounderFilter(){
   const btn=document.getElementById('clearFounderFilter');
-  if(btn) btn.style.display = activeFounder?'inline-flex':'none';
-  if(!activeFounder){
+  if(btn) btn.style.display = activeFounders.size>0?'inline-flex':'none';
+  if(activeFounders.size===0){
     // восстанавливаем сохранённые included
     const saved=JSON.parse(localStorage.getItem(STORE_KEY+'_incl')||'null');
     if(saved){
@@ -731,10 +886,11 @@ function applyFounderFilter(){
   const incl={};
   allFundsFlat().forEach(f=>incl[f.id]=f.included);
   localStorage.setItem(STORE_KEY+'_incl', JSON.stringify(incl));
-  // считаем сумму только для фондов где есть этот учредитель
+  // считаем суммарную долю выбранных учредителей
   allFundsFlat().forEach(f=>{
-    const hasFn=(f.founders||[]).some(fn=>fn.name===activeFounder);
-    f._filterShare = hasFn ? ((f.founders.find(fn=>fn.name===activeFounder)?.pct||0)/100) : 0;
+    let share=0;
+    (f.founders||[]).forEach(fn=>{if(activeFounders.has(fn.name))share+=fn.pct;});
+    f._filterShare = share/100;
   });
   // пересчитываем отображение
   const u = allFundsFlat().filter(f=>f.included).reduce((s,f)=>s+getUsd(f)*f._filterShare,0);
@@ -748,11 +904,19 @@ function applyFounderFilter(){
 }
 
 function clearFilter(){
-  activeFounder=null;
+  activeFounders.clear();
   allFundsFlat().forEach(f=>f._filterShare=undefined);
   const saved=JSON.parse(localStorage.getItem(STORE_KEY+'_incl')||'null');
   if(saved) allFundsFlat().forEach(f=>{if(saved[f.id]!==undefined)f.included=saved[f.id];});
   updateRoot(); renderTree(); renderFounderFilter();
+}
+
+function toggleInclPanel(){
+  const p=document.getElementById('inclPanel');
+  const b=document.getElementById('inclToggleBtn');
+  const open=p.style.display==='none';
+  p.style.display=open?'block':'none';
+  b.textContent=(open?'▾':'▸')+' Состав (учитывать)';
 }
 
 /* INIT */
