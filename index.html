@@ -165,6 +165,11 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
       </div>
     </div>
     <div class="incl-row" id="inclRow"><span class="incl-lbl">Учитывать:</span></div>
+    <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--text3)">Фильтр по учредителю:</span>
+      <div id="founderFilterRow" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      <button class="btn sm" id="clearFounderFilter" style="display:none" onclick="clearFilter()">✕ сбросить</button>
+    </div>
   </div>
 
   <div class="sec-hdr">
@@ -182,6 +187,8 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
     <label class="fl">Капитал, $ (вручную)</label>
     <input class="fi" id="eUsd" type="number" placeholder="оставьте пустым — из Google Sheets">
     <div class="fn">Если заполнено — заменяет живые данные</div>
+    <label class="fl">Доход / месяц, $ (вручную)</label>
+    <input class="fi" id="eMonthly" type="number" placeholder="оставьте пустым — из Google Sheets">
     <label class="fl">Доходность, % годовых</label>
     <input class="fi" id="eYield" type="number" step="0.1">
     <label class="fl">Тег</label>
@@ -299,7 +306,7 @@ function saveState(list) {
   function strip(funds){return funds.map(f=>({
     id:f.id,name:f.name,usdM:f.usdM,yld:f.yld,monthly:f.monthly,tag:f.tag,
     included:f.included,founders:f.founders||[],
-    rubM:f.rubM,rubMon:f.rubMon,
+    rubM:f.rubM,rubMon:f.rubMon,liveYld:f.liveYld,
     children:strip(f.children||[])
   }));}
   localStorage.setItem(STORE_KEY, JSON.stringify(strip(list)));
@@ -393,8 +400,13 @@ function getYld(f){ return f.liveYld||f.yld||0; }
 function rootUsd(){ return funds.filter(f=>f.included).reduce((s,f)=>s+getUsd(f),0); }
 function rootMon(){ return funds.filter(f=>f.included).reduce((s,f)=>s+getMon(f),0); }
 function rootYld(){
-  const a=funds.filter(f=>f.included&&getYld(f)>0);
-  return a.length?a.reduce((s,f)=>s+getYld(f),0)/a.length:0;
+  // взвешенная по капиталу: сумма(usd*yld) / сумма(usd)
+  let wSum=0, uSum=0;
+  funds.filter(f=>f.included).forEach(f=>{
+    const u=getUsd(f), y=getYld(f);
+    if(u>0&&y>0){wSum+=u*y; uSum+=u;}
+  });
+  return uSum>0 ? wSum/uSum : 0;
 }
 
 /* ROOT UI */
@@ -413,6 +425,7 @@ function updateRoot(){
     p.addEventListener('click',()=>{f.included=!f.included;saveState(funds);updateRoot();renderTree();});
     row.appendChild(p);
   });
+  renderFounderFilter();
 }
 
 /* CARD */
@@ -622,6 +635,7 @@ function openEdit(id){
   document.getElementById('mEditTitle').textContent='Редактировать: '+f.name;
   document.getElementById('eName').value=f.name;
   document.getElementById('eUsd').value=f.usdM!=null?f.usdM:'';
+  document.getElementById('eMonthly').value=f.monthly!=null?f.monthly:'';
   document.getElementById('eYield').value=f.yld!=null?f.yld:'';
   document.getElementById('eTag').value=f.tag||'';
   const fe=document.getElementById('foundersEdit');fe.innerHTML='';
@@ -632,6 +646,7 @@ function saveEdit(){
   const f=findF(editingId,funds);if(!f)return;
   const n=document.getElementById('eName').value.trim();if(n)f.name=n;
   const u=document.getElementById('eUsd').value;f.usdM=u!==''?parseFloat(u):null;
+  const mon=document.getElementById('eMonthly').value;f.monthly=mon!==''?parseFloat(mon):null;
   const y=document.getElementById('eYield').value;f.yld=y!==''?parseFloat(y):null;
   f.tag=document.getElementById('eTag').value.trim();
   f.founders=[];
@@ -668,6 +683,77 @@ function saveAdd(){
   saveState(funds);closeM('mAdd');renderTree();updateRoot();
 }
 function deleteFund(id){if(!confirm('Удалить фонд?'))return;removeF(id,funds);saveState(funds);renderTree();updateRoot();}
+
+/* FOUNDER FILTER */
+let activeFounder = null;
+
+function allFundsFlat(){
+  const arr=[];
+  function walk(list){list.forEach(f=>{arr.push(f);walk(f.children||[]);});}
+  walk(funds);
+  return arr;
+}
+
+function renderFounderFilter(){
+  const row = document.getElementById('founderFilterRow');
+  if(!row) return;
+  // собираем всех уникальных учредителей
+  const names = new Set();
+  allFundsFlat().forEach(f=>(f.founders||[]).forEach(fn=>names.add(fn.name)));
+  row.innerHTML='';
+  document.getElementById('clearFounderFilter').style.display = activeFounder ? 'inline-flex' : 'none';
+  if(!names.size){row.innerHTML='<span style="font-size:12px;color:var(--text3)">—</span>';return;}
+  names.forEach(name=>{
+    const p=document.createElement('div');
+    p.className='pill'+(activeFounder===name?' on':'');
+    p.innerHTML=`<span class="dot"></span>${name}`;
+    p.addEventListener('click',()=>{
+      activeFounder = activeFounder===name ? null : name;
+      applyFounderFilter();
+      renderFounderFilter();
+    });
+    row.appendChild(p);
+  });
+}
+
+function applyFounderFilter(){
+  const btn=document.getElementById('clearFounderFilter');
+  if(btn) btn.style.display = activeFounder?'inline-flex':'none';
+  if(!activeFounder){
+    // восстанавливаем сохранённые included
+    const saved=JSON.parse(localStorage.getItem(STORE_KEY+'_incl')||'null');
+    if(saved){
+      allFundsFlat().forEach(f=>{if(saved[f.id]!==undefined)f.included=saved[f.id];});
+    }
+    updateRoot(); renderTree(); return;
+  }
+  // сохраняем текущие included
+  const incl={};
+  allFundsFlat().forEach(f=>incl[f.id]=f.included);
+  localStorage.setItem(STORE_KEY+'_incl', JSON.stringify(incl));
+  // считаем сумму только для фондов где есть этот учредитель
+  allFundsFlat().forEach(f=>{
+    const hasFn=(f.founders||[]).some(fn=>fn.name===activeFounder);
+    f._filterShare = hasFn ? ((f.founders.find(fn=>fn.name===activeFounder)?.pct||0)/100) : 0;
+  });
+  // пересчитываем отображение
+  const u = allFundsFlat().filter(f=>f.included).reduce((s,f)=>s+getUsd(f)*f._filterShare,0);
+  const m = allFundsFlat().filter(f=>f.included).reduce((s,f)=>s+getMon(f)*f._filterShare,0);
+  document.getElementById('rfUsd').textContent=fU(u)||'—';
+  document.getElementById('rfRub').textContent=fR(u*usdRub)||'—';
+  document.getElementById('rfMonUsd').textContent=fU(m)||'—';
+  document.getElementById('rfMonRub').textContent=fR(m*usdRub)||'—';
+  // в карточках показываем долю
+  renderTree();
+}
+
+function clearFilter(){
+  activeFounder=null;
+  allFundsFlat().forEach(f=>f._filterShare=undefined);
+  const saved=JSON.parse(localStorage.getItem(STORE_KEY+'_incl')||'null');
+  if(saved) allFundsFlat().forEach(f=>{if(saved[f.id]!==undefined)f.included=saved[f.id];});
+  updateRoot(); renderTree(); renderFounderFilter();
+}
 
 /* INIT */
 fetchRate();
