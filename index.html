@@ -58,13 +58,10 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
 .sec-lbl::after{content:'';width:60px;height:1px;background:var(--border)}
 
 /* TREE */
-.tree-wrap{width:100%}
-.t-group{display:flex;flex-direction:column;width:100%}
-.t-row{display:flex;gap:20px;width:100%}
-.t-node{display:flex;flex-direction:column;flex:1;min-width:0;position:relative}
-.t-conn{position:relative;height:56px;pointer-events:none;width:100%}
-.t-conn svg{position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible}
-.t-children{display:flex;gap:20px;width:100%;padding:0 0 0 0}
+.tree-wrap{width:100%;display:flex;flex-direction:column;gap:0}
+.fund-row{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;width:100%}
+.conn-row{position:relative;height:60px;pointer-events:none;width:100%}
+.conn-row svg{position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible}
 
 /* FUND CARD */
 .fc{background:var(--bg2);border:1px solid var(--border);border-radius:24px;padding:40px 42px;position:relative;transition:border-color .2s;overflow:hidden}
@@ -512,99 +509,86 @@ function swapFunds(idA,idB){
   saveState(funds);renderTree();updateRoot();
 }
 
-/* RENDER TREE — recursive, each fund owns its children */
-function renderFundNode(f, parentColor){
-  const col = FCOLORS[f.id] || parentColor || '#4f8ef7';
-  const node = document.createElement('div');
-  node.className = 't-node';
-
-  // card
-  node.appendChild(makeCard(f));
-
-  // children
-  if(f.children && f.children.length){
-    const connDiv = document.createElement('div');
-    connDiv.className = 't-conn';
-    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-    connDiv.appendChild(svg);
-    node.appendChild(connDiv);
-
-    const childRow = document.createElement('div');
-    childRow.className = 't-children';
-    f.children.forEach(child => childRow.appendChild(renderFundNode(child, col)));
-    node.appendChild(childRow);
-
-    // draw connectors after layout
-    requestAnimationFrame(()=>{
-      const sr = connDiv.getBoundingClientRect();
-      if(!sr.width) return;
-      const cardEl = node.querySelector(`[data-fid="${f.id}"]`);
-      if(!cardEl) return;
-      const pr = cardEl.getBoundingClientRect();
-      const px = pr.left + pr.width/2 - sr.left;
-      let paths = `<circle cx="${px}" cy="0" r="5" fill="${col}" opacity="0.9"/>`;
-      f.children.forEach(child=>{
-        const cc = node.querySelector(`[data-fid="${child.id}"]`);
-        if(!cc) return;
-        const cr = cc.getBoundingClientRect();
-        const cx = cr.left + cr.width/2 - sr.left;
-        const childCol = FCOLORS[child.id] || col;
-        paths += `<path d="M${px},0 C${px},40 ${cx},16 ${cx},56" fill="none" stroke="${childCol}" stroke-width="2" stroke-dasharray="6 4" opacity="0.7"/>`;
-        paths += `<polygon points="${cx-6},47 ${cx+6},47 ${cx},56" fill="${childCol}" opacity="0.9"/>`;
-      });
-      svg.setAttribute('width','100%');
-      svg.setAttribute('height','56');
-      svg.setAttribute('viewBox',`0 0 ${sr.width} 56`);
-      svg.innerHTML = paths;
-    });
-  }
-  return node;
-}
-
+/* RENDER TREE — без подфондов вверху, с подфондами внизу */
 function renderTree(){
   const wrap = document.getElementById('treeWrap');
   wrap.innerHTML = '';
   if(!funds.length){
-    wrap.innerHTML = '<div style="color:var(--text3);padding:40px;text-align:center;font-size:14px">Нет фондов. Добавьте первый.</div>';
+    wrap.innerHTML = '<div style="color:var(--text3);padding:40px;text-align:center">Нет фондов.</div>';
     return;
   }
 
-  // connector from root card to top-level funds
-  const connDiv = document.createElement('div');
-  connDiv.className = 't-conn';
-  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-  connDiv.appendChild(svg);
-  wrap.appendChild(connDiv);
+  const noKids = funds.filter(f => !f.children || !f.children.length);
+  const hasKids = funds.filter(f => f.children && f.children.length > 0);
 
-  // top-level row
-  const topRow = document.createElement('div');
-  topRow.className = 't-row';
-  funds.forEach(f => topRow.appendChild(renderFundNode(f, null)));
-  wrap.appendChild(topRow);
-
-  // draw root -> top level connectors
-  requestAnimationFrame(()=>{
-    const sr = connDiv.getBoundingClientRect();
-    if(!sr.width) return;
-    const rootEl = document.querySelector('.root-card');
-    if(!rootEl) return;
-    const rr = rootEl.getBoundingClientRect();
-    const px = rr.left + rr.width/2 - sr.left;
-    let paths = `<circle cx="${px}" cy="0" r="6" fill="#4f8ef7"/>`;
-    funds.forEach(f=>{
-      const cc = document.querySelector(`[data-fid="${f.id}"]`);
-      if(!cc) return;
-      const cr = cc.getBoundingClientRect();
-      const cx = cr.left + cr.width/2 - sr.left;
-      const col = FCOLORS[f.id] || '#4f8ef7';
-      paths += `<path d="M${px},0 C${px},40 ${cx},16 ${cx},56" fill="none" stroke="${col}" stroke-width="2" stroke-dasharray="6 4" opacity="0.7"/>`;
-      paths += `<polygon points="${cx-6},47 ${cx+6},47 ${cx},56" fill="${col}" opacity="0.9"/>`;
+  // === КОННЕКТОР: root → все фонды ===
+  function makeConnRow(parents, children, wrap){
+    const row = document.createElement('div');
+    row.className = 'conn-row';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    row.appendChild(svg);
+    wrap.appendChild(row);
+    requestAnimationFrame(()=>{
+      const sr = row.getBoundingClientRect();
+      if(!sr.width) return;
+      let p = '';
+      parents.forEach(par => {
+        const pel = par === 'root'
+          ? document.querySelector('.root-card')
+          : document.querySelector(`[data-fid="${par.id}"]`);
+        if(!pel) return;
+        const pr = pel.getBoundingClientRect();
+        const px = pr.left + pr.width/2 - sr.left;
+        const col = par === 'root' ? '#4f8ef7' : (FCOLORS[par.id]||'#4f8ef7');
+        const myKids = par === 'root' ? children : (par.children||[]).filter(c=>children.find(n=>n.id===c.id));
+        myKids.forEach(child=>{
+          const cel = document.querySelector(`[data-fid="${child.id}"]`);
+          if(!cel) return;
+          const cr = cel.getBoundingClientRect();
+          const cx = cr.left + cr.width/2 - sr.left;
+          const cc = FCOLORS[child.id]||'#4f8ef7';
+          p += `<path d="M${px},0 C${px},42 ${cx},18 ${cx},60" fill="none" stroke="${cc}" stroke-width="2" stroke-dasharray="6 4" opacity="0.7"/>`;
+          p += `<polygon points="${cx-6},51 ${cx+6},51 ${cx},60" fill="${cc}" opacity="0.9"/>`;
+        });
+        if((par==='root'?children:myKids).length)
+          p += `<circle cx="${px}" cy="0" r="5" fill="${col}" opacity="0.9"/>`;
+      });
+      svg.setAttribute('width','100%');
+      svg.setAttribute('height','60');
+      svg.setAttribute('viewBox',`0 0 ${sr.width} 60`);
+      svg.innerHTML = p;
     });
-    svg.setAttribute('width','100%');
-    svg.setAttribute('height','56');
-    svg.setAttribute('viewBox',`0 0 ${sr.width} 56`);
-    svg.innerHTML = paths;
-  });
+  }
+
+  // === РЯД 1: фонды БЕЗ подфондов ===
+  if(noKids.length){
+    // коннектор root → ряд 1
+    makeConnRow(['root'], noKids, wrap);
+    const row1 = document.createElement('div');
+    row1.className = 'fund-row';
+    noKids.forEach(f => row1.appendChild(makeCard(f)));
+    wrap.appendChild(row1);
+  }
+
+  // === РЯД 2: фонды С подфондами ===
+  if(hasKids.length){
+    // коннектор root → ряд 2
+    makeConnRow(['root'], hasKids, wrap);
+    const row2 = document.createElement('div');
+    row2.className = 'fund-row';
+    hasKids.forEach(f => row2.appendChild(makeCard(f)));
+    wrap.appendChild(row2);
+
+    // для каждого фонда с детьми — коннектор и ряд подфондов
+    hasKids.forEach(parent => {
+      if(!parent.children || !parent.children.length) return;
+      makeConnRow([parent], parent.children, wrap);
+      const subRow = document.createElement('div');
+      subRow.className = 'fund-row';
+      parent.children.forEach(c => subRow.appendChild(makeCard(c)));
+      wrap.appendChild(subRow);
+    });
+  }
 }
 
 /* MODALS */
