@@ -58,11 +58,13 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
 .sec-lbl::after{content:'';width:60px;height:1px;background:var(--border)}
 
 /* TREE */
-.tree-wrap{display:flex;flex-direction:column;align-items:center}
-.conn-svg-row{position:relative;height:72px;width:100%;pointer-events:none}
-.conn-svg-row svg{overflow:visible;position:absolute;top:0;left:0;width:100%;height:100%}
-
-.fund-row{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;width:100%}
+.tree-wrap{width:100%}
+.t-group{display:flex;flex-direction:column;width:100%}
+.t-row{display:flex;gap:20px;width:100%}
+.t-node{display:flex;flex-direction:column;flex:1;min-width:0;position:relative}
+.t-conn{position:relative;height:56px;pointer-events:none;width:100%}
+.t-conn svg{position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible}
+.t-children{display:flex;gap:20px;width:100%;padding:0 0 0 0}
 
 /* FUND CARD */
 .fc{background:var(--bg2);border:1px solid var(--border);border-radius:24px;padding:40px 42px;position:relative;transition:border-color .2s;overflow:hidden}
@@ -139,7 +141,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
   <div class="logo-text">PIURA <span>FOUNDATION</span></div>
   <div class="hright">
     <div class="rate-chip">$ → ₽ <b id="rateDisplay">...</b></div>
-    <button class="btn sm" onclick="openAdd(0)">+ ФОНД</button>
+    <button class="btn sm" onclick="openAdd(0)">+ Фонд</button>
     <button class="btn sm" onclick="openSettings()">⚙</button>
   </div>
 </div>
@@ -147,7 +149,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
 <div class="wrap">
   <div class="root-card">
     <div class="root-name" id="rfName">PIURA FOUNDATION</div>
-    <div class="root-sub">MASTER FUND · HIERARCHY OVERVIEW</div>
+    <div class="root-sub">ГОЛОВНОЙ ФОНД · ИЕРАРХИЯ</div>
     <div class="root-metrics">
       <div class="rm">
         <div class="rm-lbl">Итого портфель</div>
@@ -169,7 +171,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
   </div>
 
   <div class="sec-hdr">
-    <div class="sec-lbl">Fund Structure</div>
+    <div class="sec-lbl">Структура управления</div>
   </div>
   <div class="tree-wrap" id="treeWrap"></div>
 </div>
@@ -177,24 +179,24 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
 <!-- MODAL Edit -->
 <div class="modal-bg" id="mEdit">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="mtitle" id="mEditTitle">Edit Fund</div>
-    <label class="fl">Name</label>
+    <div class="mtitle" id="mEditTitle">Редактировать фонд</div>
+    <label class="fl">Название</label>
     <input class="fi" id="eName" type="text">
-    <label class="fl">Capital, $ (manual override)</label>
-    <input class="fi" id="eUsd" type="number" placeholder="leave empty = from Google Sheets">
-    <div class="fn">If filled — overrides live data</div>
-    <label class="fl">Yield, % p.a.</label>
+    <label class="fl">Капитал, $ (вручную)</label>
+    <input class="fi" id="eUsd" type="number" placeholder="оставьте пустым — из Google Sheets">
+    <div class="fn">Если заполнено — заменяет живые данные</div>
+    <label class="fl">Доходность, % годовых</label>
     <input class="fi" id="eYield" type="number" step="0.1">
-    <label class="fl">Tag</label>
-    <input class="fi" id="eTag" type="text" placeholder="Equities, Bonds...">
+    <label class="fl">Тег</label>
+    <input class="fi" id="eTag" type="text" placeholder="Акции, Облигации...">
     <div style="border-top:1px solid var(--border);padding-top:16px;margin-bottom:12px">
-      <div class="fl" style="margin-bottom:10px">Founders / Partners</div>
+      <div class="fl" style="margin-bottom:10px">Учредители / Партнёры</div>
       <div id="foundersEdit"></div>
-      <button class="btn sm" onclick="addFounderRow()">+ Add Founder</button>
+      <button class="btn sm" onclick="addFounderRow()">+ Добавить учредителя</button>
     </div>
     <div class="mactions">
-      <button class="bcancel" id="bEditCancel">Cancel</button>
-      <button class="bok" id="bEditSave">Save</button>
+      <button class="bcancel" id="bEditCancel">Отмена</button>
+      <button class="bok" id="bEditSave">Сохранить</button>
     </div>
   </div>
 </div>
@@ -202,21 +204,21 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
 <!-- MODAL Add -->
 <div class="modal-bg" id="mAdd">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="mtitle" id="mAddTitle">New Fund</div>
-    <label class="fl">Name</label>
+    <div class="mtitle" id="mAddTitle">Новый фонд</div>
+    <label class="fl">Название</label>
     <input class="fi" id="aName" type="text">
-    <label class="fl">Capital, $</label>
+    <label class="fl">Капитал, $</label>
     <input class="fi" id="aUsd" type="number" placeholder="0">
-    <div class="fn">₽ calculated automatically via CBR rate</div>
-    <label class="fl">Monthly Income, $</label>
+    <div class="fn">₽ пересчитываются по курсу ЦБ автоматически</div>
+    <label class="fl">Доход / месяц, $</label>
     <input class="fi" id="aMonthly" type="number" placeholder="0">
-    <label class="fl">Yield, %</label>
+    <label class="fl">Доходность, %</label>
     <input class="fi" id="aYield" type="number" step="0.1">
-    <label class="fl">Tag</label>
-    <input class="fi" id="aTag" type="text" placeholder="Equities, Bonds...">
+    <label class="fl">Тег</label>
+    <input class="fi" id="aTag" type="text" placeholder="Акции, Облигации...">
     <div class="mactions">
-      <button class="bcancel" id="bAddCancel">Cancel</button>
-      <button class="bok" id="bAddSave">Create</button>
+      <button class="bcancel" id="bAddCancel">Отмена</button>
+      <button class="bok" id="bAddSave">Создать</button>
     </div>
   </div>
 </div>
@@ -224,13 +226,13 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
 <!-- MODAL Settings -->
 <div class="modal-bg" id="mSettings">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="mtitle">Settings</div>
-    <label class="fl">Master Fund Name</label>
+    <div class="mtitle">Настройки</div>
+    <label class="fl">Название главного фонда</label>
     <input class="fi" id="sName" type="text">
-    <div class="fn" id="rateNote">CBR rate loads automatically</div>
+    <div class="fn" id="rateNote">Курс ЦБ загружается автоматически</div>
     <div class="mactions">
-      <button class="bcancel" id="bSettingsCancel">Cancel</button>
-      <button class="bok" id="bSettingsSave">Save</button>
+      <button class="bcancel" id="bSettingsCancel">Отмена</button>
+      <button class="bok" id="bSettingsSave">Сохранить</button>
     </div>
   </div>
 </div>
@@ -260,12 +262,12 @@ let rootName = 'PIURA FOUNDATION';
 
 /* DEFAULT funds — can be overridden by localStorage */
 const DEFAULT_FUNDS = [
-  {id:1,name:'MOSCOW FUND',    usdM:null,  yld:null, monthly:null, tag:'Equities',  included:true,children:[],api:API_MSK, sheet:'2026 (НЕД)', cur:'rub',liveUsd:null,liveMon:null,liveYld:null,loading:false,founders:[]},
-  {id:2,name:'PFF',            usdM:null,  yld:null, monthly:null, tag:'Bonds',     included:true,children:[],api:API_PFF, sheet:'2026 (PFF)', cur:'usd',liveUsd:null,liveMon:null,liveYld:null,loading:false,founders:[]},
-  {id:3,name:'SOLID FUND',     usdM:867800,yld:null, monthly:0,    tag:'Mixed',     included:true,children:[],api:null,    sheet:null,         cur:'usd',liveUsd:null,liveMon:null,liveYld:null,loading:false,founders:[]},
-  {id:4,name:'SAFE FUND',      usdM:null,  yld:null, monthly:null, tag:'Reserve',   included:true,children:[],api:API_SAFE,sheet:'2026 (SAFE)',cur:'usd',liveUsd:null,liveMon:null,liveYld:null,loading:false,founders:[]},
-  {id:5,name:'PAFF FUND',      usdM:12032, yld:null, monthly:154,  tag:'Equities',  included:true,children:[],api:null,    sheet:null,         cur:'usd',liveUsd:null,liveMon:null,liveYld:null,loading:false,founders:[]},
-  {id:6,name:'ENDOWMENT DRUG', usdM:null,  yld:null, monthly:null, tag:'Endowment', included:true,children:[],api:null,    sheet:null,         cur:'rub',liveUsd:null,liveMon:null,liveYld:null,loading:false,founders:[],rubM:1220821,rubMon:18653},
+  {id:1,name:'MOSCOW FUND',    usdM:null,  yld:null, monthly:null, tag:'Акции',  included:true,children:[],api:API_MSK, sheet:'2026 (НЕД)', cur:'rub',liveUsd:null,liveMon:null,liveYld:null,loading:false,founders:[]},
+  {id:2,name:'PFF',            usdM:null,  yld:null, monthly:null, tag:'Облигации',     included:true,children:[],api:API_PFF, sheet:'2026 (PFF)', cur:'usd',liveUsd:null,liveMon:null,liveYld:null,loading:false,founders:[]},
+  {id:3,name:'SOLID FUND',     usdM:867800,yld:null, monthly:0,    tag:'Смешанный',     included:true,children:[],api:null,    sheet:null,         cur:'usd',liveUsd:null,liveMon:null,liveYld:null,loading:false,founders:[]},
+  {id:4,name:'SAFE FUND',      usdM:null,  yld:null, monthly:null, tag:'Резерв',   included:true,children:[],api:API_SAFE,sheet:'2026 (SAFE)',cur:'usd',liveUsd:null,liveMon:null,liveYld:null,loading:false,founders:[]},
+  {id:5,name:'PAFF FUND',      usdM:12032, yld:null, monthly:154,  tag:'Акции',  included:true,children:[],api:null,    sheet:null,         cur:'usd',liveUsd:null,liveMon:null,liveYld:null,loading:false,founders:[]},
+  {id:6,name:'ENDOWMENT DRUG', usdM:null,  yld:null, monthly:null, tag:'Эндаумент', included:true,children:[],api:null,    sheet:null,         cur:'rub',liveUsd:null,liveMon:null,liveYld:null,loading:false,founders:[],rubM:1220821,rubMon:18653},
 ];
 
 /* LOAD / SAVE */
@@ -277,7 +279,15 @@ function loadState() {
     function mergeLive(saved, def) {
       saved.forEach(sf=>{
         const df=def.find(d=>d.id===sf.id);
-        if(df){sf.api=df.api;sf.sheet=df.sheet;sf.cur=df.cur;sf.loading=false;sf.liveUsd=null;sf.liveMon=null;sf.liveYld=null;}
+        if(df){
+          sf.api=df.api;sf.sheet=df.sheet;sf.cur=df.cur;
+          sf.loading=false;sf.liveUsd=null;sf.liveMon=null;sf.liveYld=null;
+          // restore manual defaults if saved value is undefined
+          if(sf.usdM===undefined) sf.usdM=df.usdM;
+          if(sf.monthly===undefined) sf.monthly=df.monthly;
+          if(sf.rubM===undefined) sf.rubM=df.rubM;
+          if(sf.rubMon===undefined) sf.rubMon=df.rubMon;
+        }
         if(!sf.founders)sf.founders=[];
         if(sf.children&&sf.children.length) mergeLive(sf.children,[]);
       });
@@ -368,15 +378,15 @@ async function fetchFund(f){
 
 /* COMPUTE */
 function getUsd(f){
-  if(f.rubM!=null) return f.rubM/usdRub;
-  if(f.usdM!=null) return f.usdM;
+  if(f.rubM!=null&&f.rubM>=0) return f.rubM/usdRub;
+  if(f.usdM!=null&&f.usdM>=0) return f.usdM;
   const live=f.liveUsd||0;
   const childSum=(f.children||[]).filter(c=>c.included).reduce((s,c)=>s+getUsd(c),0);
   return live+childSum;
 }
 function getMon(f){
-  if(f.rubMon!=null) return f.rubMon/usdRub;
-  if(f.monthly!=null) return f.monthly;
+  if(f.rubMon!=null&&f.rubMon>=0) return f.rubMon/usdRub;
+  if(f.monthly!=null&&f.monthly>=0) return f.monthly;
   const live=f.liveMon||0;
   const childSum=(f.children||[]).filter(c=>c.included).reduce((s,c)=>s+getMon(c),0);
   return live+childSum;
@@ -451,9 +461,9 @@ function makeCard(f){
 
   // compact data
   const rows=[];
-  if(mon>0){rows.push(['Income/mo',fU(mon),'g']);rows.push(['Income/yr',fU(mon*12),'g']);}
-  if(yld>0)rows.push(['Yield',yld.toFixed(1)+'%','y']);
-  if(f.liveUsd&&!f.loading)rows.push(['','<span class="live-dot"></span>live','g']);
+  if(mon>0){rows.push(['Доход/мес',fU(mon),'g']);rows.push(['Доход/мес ₽',fR(mon*usdRub),'p']);}
+  if(yld>0)rows.push(['Доходность',yld.toFixed(1)+'%','y']);
+  if(f.liveUsd&&!f.loading)rows.push(['','<span class="live-dot"></span>актуально','g']);
   if(rows.length){
     const db=document.createElement('div');db.className='fc-data';
     rows.forEach(([l,v,c])=>{
@@ -476,8 +486,8 @@ function makeCard(f){
     });
     div.appendChild(fe);
     const xb=document.createElement('button');xb.className='expand-btn';
-    xb.textContent='▾ founders';
-    xb.addEventListener('click',()=>{div.classList.toggle('expanded');xb.textContent=div.classList.contains('expanded')?'▴ hide':'▾ founders';});
+    xb.textContent='▾ учредители';
+    xb.addEventListener('click',()=>{div.classList.toggle('expanded');xb.textContent=div.classList.contains('expanded')?'▴ скрыть':'▾ учредители';});
     div.appendChild(xb);
   }
 
@@ -502,73 +512,98 @@ function swapFunds(idA,idB){
   saveState(funds);renderTree();updateRoot();
 }
 
-/* LEVELS */
-function collectLevels(list,d=0,res=[]){
-  if(!list?.length)return res;
-  if(!res[d])res[d]=[];
-  list.forEach(f=>{res[d].push(f);collectLevels(f.children,d+1,res);});
-  return res;
+/* RENDER TREE — recursive, each fund owns its children */
+function renderFundNode(f, parentColor){
+  const col = FCOLORS[f.id] || parentColor || '#4f8ef7';
+  const node = document.createElement('div');
+  node.className = 't-node';
+
+  // card
+  node.appendChild(makeCard(f));
+
+  // children
+  if(f.children && f.children.length){
+    const connDiv = document.createElement('div');
+    connDiv.className = 't-conn';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    connDiv.appendChild(svg);
+    node.appendChild(connDiv);
+
+    const childRow = document.createElement('div');
+    childRow.className = 't-children';
+    f.children.forEach(child => childRow.appendChild(renderFundNode(child, col)));
+    node.appendChild(childRow);
+
+    // draw connectors after layout
+    requestAnimationFrame(()=>{
+      const sr = connDiv.getBoundingClientRect();
+      if(!sr.width) return;
+      const cardEl = node.querySelector(`[data-fid="${f.id}"]`);
+      if(!cardEl) return;
+      const pr = cardEl.getBoundingClientRect();
+      const px = pr.left + pr.width/2 - sr.left;
+      let paths = `<circle cx="${px}" cy="0" r="5" fill="${col}" opacity="0.9"/>`;
+      f.children.forEach(child=>{
+        const cc = node.querySelector(`[data-fid="${child.id}"]`);
+        if(!cc) return;
+        const cr = cc.getBoundingClientRect();
+        const cx = cr.left + cr.width/2 - sr.left;
+        const childCol = FCOLORS[child.id] || col;
+        paths += `<path d="M${px},0 C${px},40 ${cx},16 ${cx},56" fill="none" stroke="${childCol}" stroke-width="2" stroke-dasharray="6 4" opacity="0.7"/>`;
+        paths += `<polygon points="${cx-6},47 ${cx+6},47 ${cx},56" fill="${childCol}" opacity="0.9"/>`;
+      });
+      svg.setAttribute('width','100%');
+      svg.setAttribute('height','56');
+      svg.setAttribute('viewBox',`0 0 ${sr.width} 56`);
+      svg.innerHTML = paths;
+    });
+  }
+  return node;
 }
 
-/* RENDER TREE */
 function renderTree(){
-  const wrap=document.getElementById('treeWrap');
-  wrap.innerHTML='';
-  const levels=collectLevels(funds);
-  if(!levels.length){
-    wrap.innerHTML='<div style="color:var(--text3);padding:40px;text-align:center;font-size:14px">No funds. Add one above.</div>';
+  const wrap = document.getElementById('treeWrap');
+  wrap.innerHTML = '';
+  if(!funds.length){
+    wrap.innerHTML = '<div style="color:var(--text3);padding:40px;text-align:center;font-size:14px">Нет фондов. Добавьте первый.</div>';
     return;
   }
-  let prevNodes=[{id:0,isRoot:true}];
-  levels.forEach((lvl,li)=>{
-    const cRow=document.createElement('div');cRow.className='conn-svg-row';
-    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
-    cRow.appendChild(svg);wrap.appendChild(cRow);
 
-    const fRow=document.createElement('div');fRow.className='fund-row';
-    lvl.forEach(f=>fRow.appendChild(makeCard(f)));
-    wrap.appendChild(fRow);
+  // connector from root card to top-level funds
+  const connDiv = document.createElement('div');
+  connDiv.className = 't-conn';
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  connDiv.appendChild(svg);
+  wrap.appendChild(connDiv);
 
-    const pN=[...prevNodes],cN=[...lvl];
-    requestAnimationFrame(()=>{
-      const sr=cRow.getBoundingClientRect();if(!sr.width)return;
-      let p='';
-      if(li===0){
-        const re=document.querySelector('.root-card');
-        if(re){
-          const rr=re.getBoundingClientRect();
-          const px=rr.left+rr.width/2-sr.left;
-          cN.forEach(child=>{
-            const cc=document.querySelector(`[data-fid="${child.id}"]`);if(!cc)return;
-            const cr=cc.getBoundingClientRect();
-            const cx=cr.left+cr.width/2-sr.left;
-            const col=FCOLORS[child.id]||'#4f8ef7';
-            p+=`<path d="M${px},0 C${px},52 ${cx},20 ${cx},72" fill="none" stroke="${col}" stroke-width="2" stroke-dasharray="6 4" opacity="0.65"/>`;
-            p+=`<polygon points="${cx-6},62 ${cx+6},62 ${cx},72" fill="${col}" opacity="0.85"/>`;
-          });
-          if(cN.length)p+=`<circle cx="${px}" cy="0" r="5" fill="#4f8ef7"/>`;
-        }
-      } else {
-        pN.forEach(par=>{
-          const pe=document.querySelector(`[data-fid="${par.id}"]`);if(!pe)return;
-          const pr=pe.getBoundingClientRect();
-          const px=pr.left+pr.width/2-sr.left;
-          const kids=(par.children||[]).filter(c=>cN.find(n=>n.id===c.id));
-          kids.forEach(child=>{
-            const cc=document.querySelector(`[data-fid="${child.id}"]`);if(!cc)return;
-            const cr=cc.getBoundingClientRect();
-            const cx=cr.left+cr.width/2-sr.left;
-            const col=FCOLORS[child.id]||'#4f8ef7';
-            p+=`<path d="M${px},0 C${px},52 ${cx},20 ${cx},72" fill="none" stroke="${col}" stroke-width="2" stroke-dasharray="6 4" opacity="0.65"/>`;
-            p+=`<polygon points="${cx-6},62 ${cx+6},62 ${cx},72" fill="${col}" opacity="0.85"/>`;
-          });
-          if(kids.length)p+=`<circle cx="${px}" cy="0" r="4" fill="${FCOLORS[par.id]||'#4f8ef7'}" opacity="0.85"/>`;
-        });
-      }
-      svg.setAttribute('width','100%');svg.setAttribute('height','72');
-      svg.setAttribute('viewBox',`0 0 ${sr.width} 72`);svg.innerHTML=p;
+  // top-level row
+  const topRow = document.createElement('div');
+  topRow.className = 't-row';
+  funds.forEach(f => topRow.appendChild(renderFundNode(f, null)));
+  wrap.appendChild(topRow);
+
+  // draw root -> top level connectors
+  requestAnimationFrame(()=>{
+    const sr = connDiv.getBoundingClientRect();
+    if(!sr.width) return;
+    const rootEl = document.querySelector('.root-card');
+    if(!rootEl) return;
+    const rr = rootEl.getBoundingClientRect();
+    const px = rr.left + rr.width/2 - sr.left;
+    let paths = `<circle cx="${px}" cy="0" r="6" fill="#4f8ef7"/>`;
+    funds.forEach(f=>{
+      const cc = document.querySelector(`[data-fid="${f.id}"]`);
+      if(!cc) return;
+      const cr = cc.getBoundingClientRect();
+      const cx = cr.left + cr.width/2 - sr.left;
+      const col = FCOLORS[f.id] || '#4f8ef7';
+      paths += `<path d="M${px},0 C${px},40 ${cx},16 ${cx},56" fill="none" stroke="${col}" stroke-width="2" stroke-dasharray="6 4" opacity="0.7"/>`;
+      paths += `<polygon points="${cx-6},47 ${cx+6},47 ${cx},56" fill="${col}" opacity="0.9"/>`;
     });
-    prevNodes=lvl;
+    svg.setAttribute('width','100%');
+    svg.setAttribute('height','56');
+    svg.setAttribute('viewBox',`0 0 ${sr.width} 56`);
+    svg.innerHTML = paths;
   });
 }
 
@@ -593,14 +628,14 @@ function saveSettings(){
 /* FOUNDER ROWS */
 function addFounderRow(name='',pct=''){
   const row=document.createElement('div');row.className='fnd-edit-row';
-  row.innerHTML=`<input class="fi" placeholder="Founder name" value="${name}" style="margin-bottom:0"><input class="fi" type="number" placeholder="%" value="${pct}" style="margin-bottom:0;max-width:70px"><button class="fnd-rm" onclick="this.parentElement.remove()">✕</button>`;
+  row.innerHTML=`<input class="fi" placeholder="Имя учредителя" value="${name}" style="margin-bottom:0"><input class="fi" type="number" placeholder="%" value="${pct}" style="margin-bottom:0;max-width:70px"><button class="fnd-rm" onclick="this.parentElement.remove()">✕</button>`;
   document.getElementById('foundersEdit').appendChild(row);
 }
 
 function openEdit(id){
   const f=findF(id,funds);if(!f)return;
   editingId=id;
-  document.getElementById('mEditTitle').textContent='Edit: '+f.name;
+  document.getElementById('mEditTitle').textContent='Редактировать: '+f.name;
   document.getElementById('eName').value=f.name;
   document.getElementById('eUsd').value=f.usdM!=null?f.usdM:'';
   document.getElementById('eYield').value=f.yld!=null?f.yld:'';
@@ -627,7 +662,7 @@ function saveEdit(){
 function openAdd(pid){
   addingParentId=pid;
   const p=pid===0?{name:rootName}:findF(pid,funds);
-  document.getElementById('mAddTitle').textContent='New fund under: '+(p?p.name:'');
+  document.getElementById('mAddTitle').textContent='Новый фонд в: '+(p?p.name:'');
   ['aName','aUsd','aMonthly','aYield','aTag'].forEach(id=>document.getElementById(id).value='');
   openM('mAdd');
 }
@@ -648,7 +683,7 @@ function saveAdd(){
   else{const p=findF(addingParentId,funds);if(p){p.children=p.children||[];p.children.push(nf);}}
   saveState(funds);closeM('mAdd');renderTree();updateRoot();
 }
-function deleteFund(id){if(!confirm('Delete fund?'))return;removeF(id,funds);saveState(funds);renderTree();updateRoot();}
+function deleteFund(id){if(!confirm('Удалить фонд?'))return;removeF(id,funds);saveState(funds);renderTree();updateRoot();}
 
 /* INIT */
 fetchRate();
