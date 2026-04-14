@@ -38,7 +38,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
 .root-name{font-size:112px;font-weight:900;letter-spacing:-4px;line-height:1;color:#fff;margin-bottom:8px}
 .root-sub{font-size:13px;font-weight:700;letter-spacing:.2em;color:var(--text3);text-transform:uppercase;margin-bottom:36px}
 
-.root-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:28px}
+.root-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:28px}
 .rm{background:var(--bg3);border:1px solid var(--border);border-radius:18px;padding:28px 30px}
 .rm-lbl{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:12px}
 .rm-val{font-size:66px;font-weight:900;letter-spacing:-2px;line-height:1;margin-bottom:6px}
@@ -150,27 +150,22 @@ html,body{background:var(--bg);color:var(--text);font-family:'SF Pro Display',-a
     <div class="root-sub">MASTER FUND · HIERARCHY OVERVIEW</div>
     <div class="root-metrics">
       <div class="rm">
-        <div class="rm-lbl">Total Portfolio</div>
+        <div class="rm-lbl">Итого портфель</div>
         <div class="rm-val" style="color:var(--green)" id="rfUsd">—</div>
         <div class="rm-sub" id="rfRub">—</div>
       </div>
       <div class="rm">
-        <div class="rm-lbl">Monthly Income</div>
+        <div class="rm-lbl">Доход / месяц</div>
         <div class="rm-val" style="color:var(--green)" id="rfMonUsd">—</div>
         <div class="rm-sub" id="rfMonRub" style="color:var(--purple)">—</div>
       </div>
       <div class="rm">
-        <div class="rm-lbl">Annual Income</div>
-        <div class="rm-val" style="color:var(--blue)" id="rfYrUsd">—</div>
-        <div class="rm-sub" id="rfYrRub" style="color:var(--purple)">—</div>
-      </div>
-      <div class="rm">
-        <div class="rm-lbl">Avg. Yield</div>
+        <div class="rm-lbl">Ср. доходность</div>
         <div class="rm-val" style="color:var(--yellow)" id="rfYield">—</div>
-        <div class="rm-sub">% per annum</div>
+        <div class="rm-sub">% годовых</div>
       </div>
     </div>
-    <div class="incl-row" id="inclRow"><span class="incl-lbl">Include:</span></div>
+    <div class="incl-row" id="inclRow"><span class="incl-lbl">Учитывать:</span></div>
   </div>
 
   <div class="sec-hdr">
@@ -402,11 +397,9 @@ function updateRoot(){
   document.getElementById('rfRub').textContent=fR(u*usdRub);
   document.getElementById('rfMonUsd').textContent=fU(m);
   document.getElementById('rfMonRub').textContent=fR(m*usdRub);
-  document.getElementById('rfYrUsd').textContent=fU(m*12);
-  document.getElementById('rfYrRub').textContent=fR(m*12*usdRub);
   document.getElementById('rfYield').textContent=y>0?y.toFixed(1)+'%':'—';
   const row=document.getElementById('inclRow');
-  row.innerHTML='<span class="incl-lbl">Include:</span>';
+  row.innerHTML='<span class="incl-lbl">Учитывать:</span>';
   funds.forEach(f=>{
     const p=document.createElement('div');p.className='pill'+(f.included?' on':'');
     p.innerHTML=`<span class="dot"></span>${f.name}`;
@@ -550,8 +543,8 @@ function renderTree(){
             const cr=cc.getBoundingClientRect();
             const cx=cr.left+cr.width/2-sr.left;
             const col=FCOLORS[child.id]||'#4f8ef7';
-            p+=`<path d="M${px},0 C${px},44 ${cx},20 ${cx},64" fill="none" stroke="${col}" stroke-width="2" stroke-dasharray="6 4" opacity="0.65"/>`;
-            p+=`<polygon points="${cx-5},56 ${cx+5},56 ${cx},64" fill="${col}" opacity="0.85"/>`;
+            p+=`<path d="M${px},0 C${px},52 ${cx},20 ${cx},72" fill="none" stroke="${col}" stroke-width="2" stroke-dasharray="6 4" opacity="0.65"/>`;
+            p+=`<polygon points="${cx-6},62 ${cx+6},62 ${cx},72" fill="${col}" opacity="0.85"/>`;
           });
           if(cN.length)p+=`<circle cx="${px}" cy="0" r="5" fill="#4f8ef7"/>`;
         }
@@ -566,14 +559,14 @@ function renderTree(){
             const cr=cc.getBoundingClientRect();
             const cx=cr.left+cr.width/2-sr.left;
             const col=FCOLORS[child.id]||'#4f8ef7';
-            p+=`<path d="M${px},0 C${px},44 ${cx},20 ${cx},64" fill="none" stroke="${col}" stroke-width="2" stroke-dasharray="6 4" opacity="0.65"/>`;
-            p+=`<polygon points="${cx-5},56 ${cx+5},56 ${cx},64" fill="${col}" opacity="0.85"/>`;
+            p+=`<path d="M${px},0 C${px},52 ${cx},20 ${cx},72" fill="none" stroke="${col}" stroke-width="2" stroke-dasharray="6 4" opacity="0.65"/>`;
+            p+=`<polygon points="${cx-6},62 ${cx+6},62 ${cx},72" fill="${col}" opacity="0.85"/>`;
           });
           if(kids.length)p+=`<circle cx="${px}" cy="0" r="4" fill="${FCOLORS[par.id]||'#4f8ef7'}" opacity="0.85"/>`;
         });
       }
-      svg.setAttribute('width','100%');svg.setAttribute('height','64');
-      svg.setAttribute('viewBox',`0 0 ${sr.width} 64`);svg.innerHTML=p;
+      svg.setAttribute('width','100%');svg.setAttribute('height','72');
+      svg.setAttribute('viewBox',`0 0 ${sr.width} 72`);svg.innerHTML=p;
     });
     prevNodes=lvl;
   });
