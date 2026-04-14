@@ -492,16 +492,18 @@ async function fetchFund(f){
 
 /* COMPUTE */
 function getUsd(f){
-  if(f.usdM!=null&&f.usdM>=0) return f.usdM;
-  const live=f.liveUsd||0;
+  // Собственный капитал: ручной > live > 0
+  const own = (f.usdM!=null&&f.usdM>=0) ? f.usdM : (f.liveUsd||0);
+  // Всегда прибавляем капитал подфондов
   const childSum=(f.children||[]).filter(c=>c.included).reduce((s,c)=>s+getUsd(c),0);
-  return live+childSum;
+  return own + childSum;
 }
 function getMon(f){
-  if(f.monthly!=null&&f.monthly>=0) return f.monthly;
-  const live=f.liveMon||0;
+  // Собственный доход: ручной > live > 0
+  const own = (f.monthly!=null&&f.monthly>=0) ? f.monthly : (f.liveMon||0);
+  // Всегда прибавляем доход подфондов
   const childSum=(f.children||[]).filter(c=>c.included).reduce((s,c)=>s+getMon(c),0);
-  return live+childSum;
+  return own + childSum;
 }
 function getYld(f){ return f.liveYld||f.yld||0; }
 
