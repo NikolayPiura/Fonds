@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Управление фондами</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060608;--bg2:#0e0e12;--bg3:#161619;--bg4:#1e1e24;
+  --border:#2e2e3a;--text:#fff;--text2:#e2e4e9;--text3:#9ca3af;
+  --blue:#3b82f6;--green:#22c55e;--red:#ef4444;--yellow:#eab308;
+  --purple:#a855f7;--cyan:#06b6d4;--orange:#f97316
+}
+html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+
+/* ── HEADER ── */
+.header{background:#0a0a0f;border-bottom:1px solid var(--border);padding:28px 56px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:52px;font-weight:900;letter-spacing:-2px;line-height:1}
+.logo span{color:var(--blue)}
+.logo .sub{font-size:12px;font-weight:400;color:var(--text3);letter-spacing:.2em;text-transform:uppercase;display:block;margin-top:4px}
+.hright{display:flex;align-items:center;gap:14px}
+.rate-badge{font-size:14px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px 16px}
+.rate-badge b{color:var(--green)}
+.btn{background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text2);cursor:pointer;padding:10px 20px;font-size:14px;font-weight:600;transition:.2s}
+.btn:hover{border-color:#4a5080;color:var(--text);background:var(--bg4)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.primary:hover{background:#2563eb;border-color:#2563eb}
+
+/* ── WRAP ── */
+.wrap{padding:40px 56px;display:flex;flex-direction:column;gap:40px;max-width:1800px;margin:0 auto}
+
+/* ── ROOT FUND ── */
+.root-fund{background:var(--bg2);border:1px solid #3a4060;border-radius:24px;padding:36px 40px;position:relative}
+.root-fund::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--blue);border-radius:24px 24px 0 0}
+.rf-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;gap:20px}
+.rf-name{font-size:48px;font-weight:900;letter-spacing:-2px;color:#fff;line-height:1}
+.rf-badge{font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;background:#1a2040;color:#7c9ef5;letter-spacing:.08em;text-transform:uppercase;margin-top:8px;display:inline-block}
+.rf-edit-btn{background:none;border:1px solid var(--border);border-radius:10px;color:var(--text3);cursor:pointer;padding:8px 16px;font-size:13px;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.rf-edit-btn:hover{border-color:#5a6080;color:var(--text);background:var(--bg3)}
+
+.rf-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.rf-metric{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:22px 24px}
+.rfm-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;font-weight:600}
+.rfm-val{font-size:40px;font-weight:900;letter-spacing:-1px;line-height:1}
+.rfm-sub{font-size:13px;color:var(--text2);margin-top:8px}
+
+.rf-includes{display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:20px}
+.rf-includes-label{font-size:12px;color:var(--text3);margin-right:4px;display:flex;align-items:center}
+.incl-pill{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text3);cursor:pointer;padding:5px 12px;border-radius:20px;border:1px solid var(--border);transition:all .15s;user-select:none}
+.incl-pill.on{background:#192038;border-color:#3a4a7a;color:#7c9ef5}
+.incl-pill .dot{width:8px;height:8px;border-radius:50%;background:#3a4060;flex-shrink:0}
+.incl-pill.on .dot{background:#7c9ef5}
+
+/* ── TREE SECTION ── */
+.tree-section{display:flex;flex-direction:column;align-items:center;gap:0}
+.tree-level{display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+.conn-row{position:relative;height:56px;width:100%;pointer-events:none}
+.conn-row svg{overflow:visible;position:absolute;top:0;left:0;width:100%;height:100%}
+
+/* ── FUND CARD ── */
+.fund-card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:24px 26px;min-width:220px;max-width:300px;position:relative;transition:border-color .2s;cursor:default}
+.fund-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:18px 18px 0 0;background:var(--accent,#2a3560)}
+.fund-card:hover{border-color:#4a5080}
+.fund-card.excluded{opacity:.35}
+
+.card-hov{position:absolute;top:10px;right:10px;display:none;gap:4px;z-index:10}
+.fund-card:hover .card-hov{display:flex}
+.hbtn{width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);color:var(--text3);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;line-height:1}
+.hbtn:hover{border-color:#5a7af0;color:#7c9ef5;background:#192038}
+.hbtn.del:hover{border-color:#7a2020;color:var(--red);background:#200c0c}
+
+.card-name{font-size:18px;font-weight:800;color:#fff;margin-bottom:14px;padding-right:28px;line-height:1.2}
+.card-usd{font-size:32px;font-weight:900;color:var(--green);letter-spacing:-1px;line-height:1;margin-bottom:4px}
+.card-rub{font-size:13px;color:var(--text3);margin-bottom:10px}
+.card-tag{font-size:10px;padding:3px 8px;border-radius:5px;font-weight:600;display:inline-block;margin-bottom:10px}
+.card-yield{font-size:14px;font-weight:700}
+.card-yield.up{color:var(--green)}.card-yield.dn{color:var(--red)}
+
+/* DATA BLOCKS inside card */
+.card-data{display:flex;flex-direction:column;gap:6px;margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
+.card-data-row{display:flex;justify-content:space-between;align-items:baseline}
+.cdr-label{font-size:11px;color:var(--text3)}
+.cdr-val{font-size:13px;font-weight:700;color:var(--text2)}
+.cdr-val.green{color:var(--green)}
+.cdr-val.yellow{color:var(--yellow)}
+
+.card-status{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.status-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px}
+
+/* ── LOADING SPINNER ── */
+.fund-loading{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);margin-top:8px}
+.mini-spin{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;flex-shrink:0}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ── MODAL ── */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-backdrop.open{opacity:1;pointer-events:all}
+.modal-box{background:var(--bg2);border:1px solid #3a4060;border-radius:20px;padding:28px;width:420px;max-width:94vw;transform:translateY(12px);transition:transform .2s;max-height:90vh;overflow-y:auto}
+.modal-backdrop.open .modal-box{transform:translateY(0)}
+.modal-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:20px}
+.field-label{display:block;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;font-weight:600}
+.field-input{width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;margin-bottom:16px;outline:none;transition:border-color .15s;font-family:inherit}
+.field-input:focus{border-color:var(--blue)}
+.field-note{font-size:11px;color:var(--text3);margin-top:-12px;margin-bottom:16px}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:4px}
+.btn-ok{background:var(--blue);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:600;padding:10px 22px;cursor:pointer;font-family:inherit;transition:background .15s}
+.btn-ok:hover{background:#2563eb}
+.btn-cancel{background:none;border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:14px;padding:10px 16px;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-cancel:hover{border-color:#5a6080;color:#fff}
+
+/* ── SECTION TITLE ── */
+.section-label{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <span id="rootNameDisplay">ФОНД</span>
+    <span class="sub">Управление фондами · Иерархия</span>
+  </div>
+  <div class="hright">
+    <div class="rate-badge">$ → ₽ &nbsp;<b id="rateDisplay">...</b></div>
+    <button class="btn" onclick="openSettings()">⚙ Настройки</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <!-- ROOT FUND -->
+  <div class="root-fund" id="rootFundCard">
+    <div class="rf-header">
+      <div>
+        <div class="rf-name" id="rfNameBig">ФОНД</div>
+        <div class="rf-badge">Головной фонд</div>
+      </div>
+    </div>
+    <div class="rf-metrics" id="rfMetrics">
+      <div class="rf-metric">
+        <div class="rfm-label">Итого портфель, $</div>
+        <div class="rfm-val" style="color:var(--green)" id="rfTotalUsd">—</div>
+        <div class="rfm-sub" id="rfTotalRub">—</div>
+      </div>
+      <div class="rf-metric">
+        <div class="rfm-label">Доход / месяц, $</div>
+        <div class="rfm-val" style="color:var(--green)" id="rfMonthly">—</div>
+        <div class="rfm-sub" id="rfYearly">—</div>
+      </div>
+      <div class="rf-metric">
+        <div class="rfm-label">Доход / месяц, ₽</div>
+        <div class="rfm-val" style="color:var(--purple)" id="rfMonthlyRub">—</div>
+        <div class="rfm-sub" id="rfYearlyRub">—</div>
+      </div>
+      <div class="rf-metric">
+        <div class="rfm-label">Ср. доходность</div>
+        <div class="rfm-val" style="color:var(--yellow)" id="rfYield">—</div>
+        <div class="rfm-sub">% годовых</div>
+      </div>
+    </div>
+    <div class="rf-includes" id="rfIncludes">
+      <span class="rf-includes-label">Учитывать:</span>
+    </div>
+  </div>
+
+  <!-- TREE -->
+  <div class="section-label">Структура управления</div>
+  <div class="tree-section" id="treeSection"></div>
+</div>
+
+<!-- MODAL: Edit fund -->
+<div class="modal-backdrop" id="modalEdit">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-title" id="modalEditTitle">Редактировать фонд</div>
+    <label class="field-label">Название</label>
+    <input class="field-input" id="fName" type="text">
+    <label class="field-label">Капитал, $ (ручной ввод)</label>
+    <input class="field-input" id="fUsd" type="number" placeholder="оставьте пустым — берётся из Google Sheets">
+    <div class="field-note">Если заполнено — используется вместо данных из дашборда</div>
+    <label class="field-label">Доходность, % годовых</label>
+    <input class="field-input" id="fYield" type="number" step="0.1">
+    <label class="field-label">Тег</label>
+    <input class="field-input" id="fTag" type="text" placeholder="Акции, Облигации...">
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btnEditCancel">Отмена</button>
+      <button class="btn-ok" id="btnEditSave">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add fund -->
+<div class="modal-backdrop" id="modalAdd">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-title" id="modalAddTitle">Новый фонд</div>
+    <label class="field-label">Название</label>
+    <input class="field-input" id="nName" type="text">
+    <label class="field-label">Капитал, $</label>
+    <input class="field-input" id="nUsd" type="number" placeholder="0">
+    <div class="field-note">₽ пересчитываются автоматически по курсу ЦБ</div>
+    <label class="field-label">Доходность, %</label>
+    <input class="field-input" id="nYield" type="number" step="0.1">
+    <label class="field-label">Тег</label>
+    <input class="field-input" id="nTag" type="text" placeholder="Акции, Облигации...">
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btnAddCancel">Отмена</button>
+      <button class="btn-ok" id="btnAddSave">Создать</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Settings -->
+<div class="modal-backdrop" id="modalSettings">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-title">Настройки</div>
+    <label class="field-label">Название головного фонда</label>
+    <input class="field-input" id="settingsName" type="text">
+    <div class="field-note" id="rateNote">Курс ЦБ загружается автоматически ежедневно</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btnSettingsCancel">Отмена</button>
+      <button class="btn-ok" id="btnSettingsSave">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ─── GLOBALS ─── */
+let usdRub = 90;
+let nextId = 20;
+let editingId = null;
+let addingParentId = null;
+
+const API_PFF  = 'https://script.google.com/macros/s/AKfycbwn_984PnYQ2zSMAPlgVPT1xrXw4vXe91H0-_jgU7_9pLdNAwNjs78FMjPNAQeew1Zc/exec';
+const API_SAFE = 'https://script.google.com/macros/s/AKfycbx_n76kW9xt7MX7q48_AL3uzH1UaSwfbJqwebZaiGhyDFdLo3Ozj0zRdirgN6ifl3qj/exec';
+const API_MSK  = 'https://script.google.com/macros/s/AKfycbzj1IX4yWqV8LNMCVhfmJ5SVgGBzCyDemYoLDUpwJqNq3Ezkeu17NeGe-dPCuU0u0_b/exec';
+
+const tagColors = {
+  'Акции':     {bg:'#1b2e40',c:'#5ab0f5'},
+  'Облигации': {bg:'#1b3020',c:'#4cde90'},
+  'Эндаумент': {bg:'#2e1f40',c:'#c084f5'},
+  'Резерв':    {bg:'#302010',c:'#f5a623'},
+  'Смешанный': {bg:'#2a1020',c:'#f56c8a'},
+  '_':         {bg:'#1e1e24',c:'#9b9a93'},
+};
+
+const fundColors = {
+  1: '#3b82f6', // Москва — синий
+  2: '#a855f7', // ПФФ — фиолет
+  3: '#22c55e', // Солид — зелёный
+  4: '#f97316', // Сейф — оранжевый
+  5: '#06b6d4', // Пафф — голубой
+  6: '#eab308', // Эндаумент — жёлтый
+};
+
+/* ─── TREE DATA ─── */
+let rootFund = { name: 'ФОНД', usdManual: null };
+let funds = [
+  { id:1, name:'Фонд Москва',    usdManual:null, yld:null, tag:'Акции',     included:true, children:[], api: API_MSK,  sheet:'2026 (НЕД)',  cur:'rub', liveUsd:null, liveMonthly:null, liveYld:null, loading:false },
+  { id:2, name:'ПФФ',            usdManual:null, yld:null, tag:'Облигации', included:true, children:[], api: API_PFF,  sheet:'2026 (PFF)',  cur:'usd', liveUsd:null, liveMonthly:null, liveYld:null, loading:false },
+  { id:3, name:'Фонд Солид',     usdManual:null, yld:null, tag:'Смешанный', included:true, children:[], api: null,    sheet:null,          cur:'usd', liveUsd:null, liveMonthly:null, liveYld:null, loading:false },
+  { id:4, name:'Фонд Сейф',      usdManual:null, yld:null, tag:'Резерв',    included:true, children:[], api: API_SAFE,sheet:'2026 (SAFE)', cur:'usd', liveUsd:null, liveMonthly:null, liveYld:null, loading:false },
+  { id:5, name:'Фонд Пафф',      usdManual:null, yld:null, tag:'Акции',     included:true, children:[], api: null,    sheet:null,          cur:'usd', liveUsd:null, liveMonthly:null, liveYld:null, loading:false },
+  { id:6, name:'Эндаумент Друг', usdManual:null, yld:null, tag:'Эндаумент', included:true, children:[], api: null,    sheet:null,          cur:'usd', liveUsd:null, liveMonthly:null, liveYld:null, loading:false },
+];
+
+/* ─── UTILS ─── */
+const fmtUsd = n => { if(!n&&n!==0) return '—'; n=Math.round(n); if(Math.abs(n)>=1000000) return '$'+(n/1000000).toFixed(2)+'M'; if(Math.abs(n)>=1000) return '$'+n.toLocaleString('en'); return '$'+n; };
+const fmtRub = n => { if(!n&&n!==0) return '—'; n=Math.round(n); if(Math.abs(n)>=1000000) return '₽'+(n/1000000).toFixed(2)+'М'; if(Math.abs(n)>=1000) return '₽'+n.toLocaleString('ru'); return '₽'+n; };
+const parseN = v => { if(v===null||v===undefined||v==='') return 0; const n=parseFloat(String(v).replace(/\s/g,'')); return isNaN(n)?0:n; };
+const parsePct = v => { const n=parseN(v); return Math.abs(n)<2?n*100:n; };
+
+function allFunds(node, arr=[]) {
+  arr.push(node);
+  (node.children||[]).forEach(c => allFunds(c, arr));
+  return arr;
+}
+function findFund(id, list) {
+  for(const f of list) {
+    if(f.id===id) return f;
+    const found = findFund(id, f.children||[]);
+    if(found) return found;
+  }
+  return null;
+}
+function removeFund(id, list) {
+  const idx = list.findIndex(f=>f.id===id);
+  if(idx>=0) { list.splice(idx,1); return true; }
+  for(const f of list) { if(removeFund(id, f.children||[])) return true; }
+  return false;
+}
+
+/* ─── CBR RATE ─── */
+async function fetchRate() {
+  try {
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2,'0');
+    const mm = String(today.getMonth()+1).padStart(2,'0');
+    const yyyy = today.getFullYear();
+    const url = `https://www.cbr.ru/scripts/XML_daily.asp?date_req=${dd}/${mm}/${yyyy}`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const xml = new DOMParser().parseFromString(text,'text/xml');
+    for(const v of xml.querySelectorAll('Valute')) {
+      if(v.querySelector('CharCode')?.textContent==='USD') {
+        const r = parseFloat(v.querySelector('Value')?.textContent.replace(',','.'));
+        if(!isNaN(r)&&r>0) {
+          usdRub = r;
+          document.getElementById('rateDisplay').textContent = r.toFixed(2)+' ₽';
+          document.getElementById('rateNote').textContent = `Курс ЦБ на ${dd}.${mm}.${yyyy}: ${r.toFixed(2)} ₽/$`;
+          updateRootMetrics();
+          return;
+        }
+      }
+    }
+  } catch(e) {}
+  // fallback
+  try {
+    const r2 = await fetch('https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1/latest/currencies/usd/rub.json');
+    const d = await r2.json();
+    if(d&&d.rub){ usdRub=d.rub; document.getElementById('rateDisplay').textContent=d.rub.toFixed(2)+' ₽'; updateRootMetrics(); }
+  } catch(e2) {
+    document.getElementById('rateDisplay').textContent='— (нет связи)';
+  }
+}
+
+/* ─── LIVE DATA ─── */
+async function fetchFundData(fund) {
+  if(!fund.api) return;
+  fund.loading = true;
+  renderTree();
+  try {
+    const r = await fetch(fund.api + '?t=' + Date.now());
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    const rows = data[fund.sheet] || [];
+
+    const TYPES_IDS = ['bank','loans','gold','market','crypto','realty'];
+    const TYPES_MAP = {
+      'Счета, вклады и нал': true, 'Займы/бизнес': true,
+      'Золото': true, 'Фондовый рынок': true,
+      'Крипта/проекты': true, 'Инвест. недвижимость': true,
+    };
+
+    let totalSumma=0, totalMes=0, totalPct=0, foundItogo=false;
+    const aktField = fund.sheet==='2026 (НЕД)' ? 'ФИО' : 'АКТИВ';
+    const mesField = fund.sheet==='2026 (НЕД)' ? 'МЕС' : (fund.sheet==='2026 (SAFE)' ? 'МЕС' : 'МЕСЯЦ');
+    const pctField = '%';
+
+    rows.forEach(row => {
+      const aktiv = String(row[aktField]||'').trim();
+      const tip   = String(row['ТИП']||'').trim();
+      const summa = parseN(row['СУММА']);
+      const mes   = parseN(row[mesField]);
+      const pct   = parsePct(row[pctField]);
+
+      if(aktiv.toUpperCase()==='ИТОГО'||(!aktiv&&summa>0&&!foundItogo)) {
+        totalSumma=summa; totalMes=mes; totalPct=pct; foundItogo=true; return;
+      }
+      if(!aktiv||aktiv===aktField||!tip) return;
+      if(!TYPES_MAP[tip]) return;
+      if(!foundItogo) { totalSumma+=summa; if(pct>0)totalPct+=pct; }
+    });
+    if(!foundItogo) {
+      rows.forEach(row=>{
+        const aktiv=String(row[aktField]||'').trim();
+        const tip=String(row['ТИП']||'').trim();
+        const summa=parseN(row['СУММА']);
+        const mes=parseN(row[mesField]);
+        if(!aktiv||aktiv===aktField||!tip||!TYPES_MAP[tip]) return;
+        totalSumma+=summa; totalMes+=mes;
+      });
+    }
+    if(totalPct===0&&totalSumma>0&&totalMes>0) totalPct=totalMes*12/totalSumma*100;
+
+    // MSK is in rubles — convert
+    if(fund.cur==='rub') {
+      fund.liveUsd = totalSumma / usdRub;
+      fund.liveMonthly = totalMes / usdRub;
+    } else {
+      fund.liveUsd = totalSumma;
+      fund.liveMonthly = totalMes;
+    }
+    fund.liveYld = totalPct;
+  } catch(e) {
+    console.warn('Fund data error', fund.name, e);
+  }
+  fund.loading = false;
+  renderTree();
+  updateRootMetrics();
+}
+
+function loadAllLiveData() {
+  funds.forEach(f => fetchFundData(f));
+}
+
+/* ─── COMPUTE TOTALS ─── */
+function computeUsd(fund) {
+  if(fund.usdManual!=null) return fund.usdManual;
+  return fund.liveUsd || 0;
+}
+function rootTotalUsd() {
+  return funds.filter(f=>f.included).reduce((s,f)=>s+computeUsd(f), 0);
+}
+function rootMonthlyUsd() {
+  return funds.filter(f=>f.included).reduce((s,f)=>s+(f.liveMonthly||0), 0);
+}
+function rootAvgYld() {
+  const active = funds.filter(f=>f.included&&(f.liveYld||f.yld));
+  if(!active.length) return 0;
+  return active.reduce((s,f)=>s+(f.liveYld||f.yld||0), 0) / active.length;
+}
+
+/* ─── MODALS ─── */
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-backdrop').forEach(el => {
+  el.addEventListener('mousedown', e => { if(e.target===el) closeModal(el.id); });
+});
+document.getElementById('btnEditCancel').addEventListener('click', ()=>closeModal('modalEdit'));
+document.getElementById('btnEditSave').addEventListener('click', saveEdit);
+document.getElementById('btnAddCancel').addEventListener('click', ()=>closeModal('modalAdd'));
+document.getElementById('btnAddSave').addEventListener('click', saveAdd);
+document.getElementById('btnSettingsCancel').addEventListener('click', ()=>closeModal('modalSettings'));
+document.getElementById('btnSettingsSave').addEventListener('click', saveSettings);
+
+function openSettings() {
+  document.getElementById('settingsName').value = rootFund.name;
+  openModal('modalSettings');
+}
+function saveSettings() {
+  const n = document.getElementById('settingsName').value.trim();
+  if(n) { rootFund.name = n; document.getElementById('rootNameDisplay').textContent = n; document.getElementById('rfNameBig').textContent = n; }
+  closeModal('modalSettings');
+}
+
+function openEdit(id) {
+  const f = findFund(id, funds);
+  if(!f) return;
+  editingId = id;
+  document.getElementById('modalEditTitle').textContent = 'Редактировать: ' + f.name;
+  document.getElementById('fName').value  = f.name;
+  document.getElementById('fUsd').value   = f.usdManual!=null ? f.usdManual : '';
+  document.getElementById('fYield').value = f.yld!=null ? f.yld : '';
+  document.getElementById('fTag').value   = f.tag||'';
+  openModal('modalEdit');
+}
+function saveEdit() {
+  const f = findFund(editingId, funds);
+  if(!f) return;
+  const n = document.getElementById('fName').value.trim();
+  if(n) f.name = n;
+  const u = document.getElementById('fUsd').value;
+  f.usdManual = u!=='' ? parseFloat(u) : null;
+  const y = document.getElementById('fYield').value;
+  f.yld = y!=='' ? parseFloat(y) : null;
+  f.tag = document.getElementById('fTag').value.trim();
+  closeModal('modalEdit');
+  renderTree();
+  updateRootMetrics();
+}
+
+function openAdd(parentId) {
+  addingParentId = parentId;
+  const parent = parentId===0 ? {name: rootFund.name} : findFund(parentId, funds);
+  document.getElementById('modalAddTitle').textContent = 'Новый фонд в: ' + (parent?parent.name:'');
+  ['nName','nUsd','nYield','nTag'].forEach(id=>document.getElementById(id).value='');
+  openModal('modalAdd');
+}
+function saveAdd() {
+  const name = document.getElementById('nName').value.trim();
+  if(!name) { document.getElementById('nName').focus(); return; }
+  const newFund = {
+    id: nextId++, name, tag: document.getElementById('nTag').value.trim(),
+    usdManual: document.getElementById('nUsd').value!=='' ? parseFloat(document.getElementById('nUsd').value) : null,
+    yld: document.getElementById('nYield').value!=='' ? parseFloat(document.getElementById('nYield').value) : null,
+    included: true, children: [], api: null, sheet: null, cur: 'usd',
+    liveUsd: null, liveMonthly: null, liveYld: null, loading: false
+  };
+  if(addingParentId===0) {
+    funds.push(newFund);
+  } else {
+    const parent = findFund(addingParentId, funds);
+    if(parent) { parent.children = parent.children||[]; parent.children.push(newFund); }
+  }
+  closeModal('modalAdd');
+  renderTree();
+  updateRootMetrics();
+}
+
+function deleteFund(id) {
+  if(!confirm('Удалить фонд?')) return;
+  removeFund(id, funds);
+  renderTree();
+  updateRootMetrics();
+}
+
+/* ─── ROOT METRICS ─── */
+function updateRootMetrics() {
+  const totUsd = rootTotalUsd();
+  const totRub = totUsd * usdRub;
+  const monthly = rootMonthlyUsd();
+  const monthlyRub = monthly * usdRub;
+  const yld = rootAvgYld();
+
+  document.getElementById('rfTotalUsd').textContent = fmtUsd(totUsd);
+  document.getElementById('rfTotalRub').textContent = fmtRub(totRub);
+  document.getElementById('rfMonthly').textContent  = fmtUsd(monthly);
+  document.getElementById('rfYearly').textContent   = '≈ ' + fmtUsd(monthly*12) + ' / год';
+  document.getElementById('rfMonthlyRub').textContent = fmtRub(monthlyRub);
+  document.getElementById('rfYearlyRub').textContent  = '≈ ' + fmtRub(monthlyRub*12) + ' / год';
+  document.getElementById('rfYield').textContent = yld>0 ? yld.toFixed(1)+'%' : '—';
+
+  // include pills
+  const cont = document.getElementById('rfIncludes');
+  cont.innerHTML = '<span class="rf-includes-label">Учитывать:</span>';
+  funds.forEach(f => {
+    const pill = document.createElement('div');
+    pill.className = 'incl-pill' + (f.included?' on':'');
+    pill.innerHTML = `<span class="dot"></span>${f.name}`;
+    pill.addEventListener('click', () => { f.included=!f.included; updateRootMetrics(); renderTree(); });
+    cont.appendChild(pill);
+  });
+}
+
+/* ─── CARD RENDER ─── */
+function makeCard(fund, isTopLevel) {
+  const color = fundColors[fund.id] || '#3b82f6';
+  const tc = tagColors[fund.tag] || tagColors['_'];
+  const usd = computeUsd(fund);
+  const rub = usd * usdRub;
+  const yld = fund.liveYld || fund.yld;
+  const monthly = fund.liveMonthly;
+  const up = yld!=null && yld>=0;
+
+  const div = document.createElement('div');
+  div.className = 'fund-card' + (fund.included ? '' : ' excluded');
+  div.setAttribute('data-fid', fund.id);
+  div.style.setProperty('--accent', color);
+
+  // hover actions
+  const hov = document.createElement('div');
+  hov.className = 'card-hov';
+  const btnE = document.createElement('button');
+  btnE.className='hbtn'; btnE.title='Редактировать'; btnE.textContent='✎';
+  btnE.addEventListener('click', e=>{ e.stopPropagation(); openEdit(fund.id); });
+  const btnA = document.createElement('button');
+  btnA.className='hbtn'; btnA.title='Добавить подфонд'; btnA.textContent='+';
+  btnA.addEventListener('click', e=>{ e.stopPropagation(); openAdd(fund.id); });
+  const btnD = document.createElement('button');
+  btnD.className='hbtn del'; btnD.title='Удалить'; btnD.textContent='✕';
+  btnD.addEventListener('click', e=>{ e.stopPropagation(); deleteFund(fund.id); });
+  hov.append(btnE, btnA, btnD);
+  div.appendChild(hov);
+
+  // name
+  const nm = document.createElement('div');
+  nm.className='card-name'; nm.textContent=fund.name;
+  div.appendChild(nm);
+
+  // tag
+  if(fund.tag) {
+    const tg = document.createElement('div');
+    tg.className='card-tag';
+    tg.style.background=tc.bg; tg.style.color=tc.c;
+    tg.textContent=fund.tag;
+    div.appendChild(tg);
+  }
+
+  // main value
+  const usdEl = document.createElement('div');
+  usdEl.className='card-usd';
+  usdEl.textContent = fund.loading ? '...' : fmtUsd(usd);
+  div.appendChild(usdEl);
+
+  const rubEl = document.createElement('div');
+  rubEl.className='card-rub';
+  rubEl.textContent = fund.loading ? '' : fmtRub(rub);
+  div.appendChild(rubEl);
+
+  // data rows
+  const dataBlock = document.createElement('div');
+  dataBlock.className='card-data';
+  const rows = [];
+  if(monthly) rows.push(['Доход/мес', fmtUsd(monthly), 'green']);
+  if(monthly) rows.push(['Доход/год', fmtUsd(monthly*12), 'green']);
+  if(yld!=null) rows.push(['Доходность', yld.toFixed(1)+'%', up?'yellow':'']);
+  rows.forEach(([lbl,val,cls])=>{
+    const row = document.createElement('div');
+    row.className='card-data-row';
+    row.innerHTML = `<span class="cdr-label">${lbl}</span><span class="cdr-val ${cls}">${val}</span>`;
+    dataBlock.appendChild(row);
+  });
+  if(rows.length) div.appendChild(dataBlock);
+
+  // loading indicator
+  if(fund.loading) {
+    const ld = document.createElement('div');
+    ld.className='fund-loading';
+    ld.innerHTML='<div class="mini-spin"></div>Загружаем данные...';
+    div.appendChild(ld);
+  }
+
+  // live indicator
+  if(fund.liveUsd && !fund.loading) {
+    const st = document.createElement('div');
+    st.className='card-status';
+    st.innerHTML=`<span class="status-badge" style="background:rgba(34,197,94,.1);color:var(--green)">live</span>`;
+    div.appendChild(st);
+  }
+
+  return div;
+}
+
+/* ─── TREE RENDER ─── */
+function collectLevels(list, depth=0, result=[]) {
+  if(!list||!list.length) return result;
+  if(!result[depth]) result[depth]=[];
+  list.forEach(f=>{ result[depth].push(f); collectLevels(f.children,depth+1,result); });
+  return result;
+}
+
+function renderTree() {
+  const section = document.getElementById('treeSection');
+  section.innerHTML = '';
+
+  const levels = collectLevels(funds);
+  if(!levels.length) {
+    const empty = document.createElement('div');
+    empty.style.cssText='text-align:center;color:var(--text3);padding:40px;font-size:14px';
+    empty.textContent='Нет фондов. Добавьте первый фонд.';
+    section.appendChild(empty);
+    const addBtn = document.createElement('button');
+    addBtn.className='btn primary'; addBtn.textContent='+ Добавить фонд';
+    addBtn.style.cssText='display:block;margin:16px auto';
+    addBtn.addEventListener('click',()=>openAdd(0));
+    section.appendChild(addBtn);
+    return;
+  }
+
+  let prevNodes = [{ id: 0, isRoot: true }];
+
+  levels.forEach((lvl, li) => {
+    // connector row
+    const connRow = document.createElement('div');
+    connRow.className = 'conn-row';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    connRow.appendChild(svg);
+    section.appendChild(connRow);
+
+    // cards row
+    const row = document.createElement('div');
+    row.className = 'tree-level';
+    lvl.forEach(f => row.appendChild(makeCard(f, li===0)));
+    section.appendChild(row);
+
+    const pNodes = [...prevNodes];
+    const cNodes = [...lvl];
+
+    requestAnimationFrame(()=>{
+      const svgRect = connRow.getBoundingClientRect();
+      if(!svgRect.width) return;
+      let paths = '';
+
+      pNodes.forEach(parent => {
+        const parentEl = parent.isRoot
+          ? document.getElementById('rootFundCard')
+          : document.querySelector(`[data-fid="${parent.id}"]`);
+        if(!parentEl) return;
+        const pr = parentEl.getBoundingClientRect();
+        const px = pr.left + pr.width/2 - svgRect.left;
+
+        const myKids = parent.isRoot
+          ? cNodes.filter(c => funds.find(f=>f.id===c.id)) // root connects to top-level only if li===0
+          : (parent.children||[]).filter(c => cNodes.find(n=>n.id===c.id));
+
+        if(li===0 && parent.isRoot) {
+          // connect root to all top-level
+          cNodes.forEach(child => {
+            const cc = document.querySelector(`[data-fid="${child.id}"]`);
+            if(!cc) return;
+            const cr = cc.getBoundingClientRect();
+            const cx = cr.left + cr.width/2 - svgRect.left;
+            const col = fundColors[child.id] || '#2a3560';
+            paths += `<path d="M${px},0 C${px},34 ${cx},22 ${cx},56" fill="none" stroke="${col}" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.6"/>`;
+            paths += `<circle cx="${cx}" cy="56" r="4" fill="${col}" opacity="0.8"/>`;
+          });
+          paths += `<circle cx="${px}" cy="0" r="5" fill="#5a7af0"/>`;
+        } else {
+          myKids.forEach(child => {
+            const cc = document.querySelector(`[data-fid="${child.id}"]`);
+            if(!cc) return;
+            const cr = cc.getBoundingClientRect();
+            const cx = cr.left + cr.width/2 - svgRect.left;
+            const col = fundColors[child.id] || '#2a3560';
+            paths += `<path d="M${px},0 C${px},34 ${cx},22 ${cx},56" fill="none" stroke="${col}" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.6"/>`;
+            paths += `<circle cx="${cx}" cy="56" r="4" fill="${col}" opacity="0.8"/>`;
+          });
+          if(myKids.length) paths += `<circle cx="${px}" cy="0" r="4" fill="${fundColors[parent.id]||'#5a7af0'}" opacity="0.8"/>`;
+        }
+      });
+
+      svg.setAttribute('width','100%');
+      svg.setAttribute('height','56');
+      svg.setAttribute('viewBox',`0 0 ${svgRect.width} 56`);
+      svg.innerHTML = paths;
+    });
+
+    prevNodes = li===0 ? lvl : lvl;
+  });
+
+  // add sub-fund button row at bottom
+  const addRow = document.createElement('div');
+  addRow.style.cssText='display:flex;justify-content:center;margin-top:24px';
+  const addBtn = document.createElement('button');
+  addBtn.className='btn'; addBtn.textContent='+ Добавить фонд к головному';
+  addBtn.addEventListener('click',()=>openAdd(0));
+  addRow.appendChild(addBtn);
+  section.appendChild(addRow);
+}
+
+/* ─── INIT ─── */
+fetchRate();
+updateRootMetrics();
+renderTree();
+loadAllLiveData();
+window.addEventListener('resize', renderTree);
+</script>
+</body>
+</html>
